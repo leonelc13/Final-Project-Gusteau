@@ -1,0 +1,9 @@
+{
+  "rds_host": "homework-2-db.ctfk1fxav22t.us-east-1.rds.amazonaws.com",
+  "rds_port": "3306",
+  "rds_user": "admin",
+  "rds_password": "k#2XQ4JQxj2$",
+  "rds_db": "SWIFTIFY",
+  "server_host": "localhost",
+  "server_port": "8080"
+}
