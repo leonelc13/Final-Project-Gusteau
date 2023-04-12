@@ -12,105 +12,431 @@ const connection = mysql.createConnection({
 });
 connection.connect((err) => err && console.log(err));
 
-/******************
- * WARM UP ROUTES *
- ******************/
+// Route 1: GET /all_ingredients/:<ingredients>
 
-// Route 1: GET /author/:type
-const author = async function (req, res) {
-  const name = 'Jonathan Chen';
-  const pennKey = 'jgchen';
+const all_ingredients = async function (req, res) {
+  const ingredient_list = req.query.ingredient_list;
+  const page = req.query.page;
+  const pageSize = req.query.page_size ?? 10;
+  let query = ""
+  if (!page) {
+    if (ingredient_list.length === 0) {
+      query += `SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews
+        FROM Recipes r1
+        LEFT JOIN Reviews r2 ON r1.Recipe_id = r2.Recipe_id
+        GROUP BY r1.id
+        ORDER BY AVG(r2.rating), COUNT(r2.rating)`;
+    } else if (ingredient_list.length == 1) {
+      query += `WITH combined_recipes} AS 
+        (SELECT Recipe_id 
+        FROM Recipe_Ingredient
+        WHERE Ingredient_id IN
+          (SELECT Ingredient_id
+          FROM Ingredients
+          WHERE Ingredient_name LIKE '%${ingredient_list[0]}%))
+        
+          SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews
+          FROM combined_recipes c
+          JOIN Recipes r1 ON c.Recipe_id = r1.id
+          LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
+          GROUP BY r1.id
+          ORDER BY AVG(r2.rating), COUNT(r2.rating)`;
 
-  // checks the value of type the request parameters
-  // note that parameters are required and are specified in server.js in the endpoint by a colon (e.g. /author/:type)
-  if (req.params.type === 'name') {
-    // res.send returns data back to the requester via an HTTP response
-    res.send(`Created by ${name}`);
-  } else if (req.params.type === 'pennkey') {
-    res.send(`Created by ${pennKey}`);
+    } else {
+      query += "WITH";
+      for (let i = 0; i < ingredient_list.length; i++) {
+        query += `recipes${i} AS
+                    (SELECT Recipe_id 
+                    FROM Recipe_Ingredient
+                    WHERE Ingredient_id IN
+                      (SELECT Ingredient_id
+                      FROM Ingredients
+                      WHERE Ingredient_name LIKE '%${ingredient_list[i]}%)),
+                  `;
+      }
+
+      query += `combined_recipes AS (
+                  SELECT recipes1.Recipe_id
+                  FROM recipes1`;
+
+      for (let i = 1; i < ingredient_list.length; i++) {
+        query += `INNER JOIN recipes${i} 
+                  ON recipes${i - 1}.Recipe_id = recipes${i}.Recipe_id)`;
+      }
+
+      query += `SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews
+          FROM combined_recipes c
+          JOIN Recipes r1 ON c.Recipe_id = r1.id
+          LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
+          GROUP BY r1.id
+          ORDER BY AVG(r2.rating), COUNT(r2.rating)`
+    }
+
+    connection.query(query, (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json([]);
+      } else {
+        res.json(data);
+      }
+    });
   } else {
-    // we can also send back an HTTP status code to indicate an improper request
-    res.status(400).send(`'${req.params.type}' is not a valid author type. Valid types are 'name' and 'pennkey'.`);
+    if (ingredient_list.length === 0) {
+      query += `SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews
+        FROM Recipes r1
+        LEFT JOIN Reviews r2 ON r1.Recipe_id = r2.Recipe_id
+        GROUP BY r1.id
+        ORDER BY AVG(r2.rating), COUNT(r2.rating)
+        LIMIT ${pageSize}`;
+    } else if (ingredient_list.length == 1) {
+      query += `WITH combined_recipes} AS 
+        (SELECT Recipe_id 
+        FROM Recipe_Ingredient
+        WHERE Ingredient_id IN
+          (SELECT Ingredient_id
+          FROM Ingredients
+          WHERE Ingredient_name LIKE '%${ingredient_list[0]}%))
+        
+          SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews
+          FROM combined_recipes c
+          JOIN Recipes r1 ON c.Recipe_id = r1.id
+          LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
+          GROUP BY r1.id
+          ORDER BY AVG(r2.rating), COUNT(r2.rating)
+          LIMIT ${pageSize}`;
+
+    } else {
+      query += "WITH";
+      for (let i = 0; i < ingredient_list.length; i++) {
+        query += `recipes${i} AS
+                    (SELECT Recipe_id 
+                    FROM Recipe_Ingredient
+                    WHERE Ingredient_id IN
+                      (SELECT Ingredient_id
+                      FROM Ingredients
+                      WHERE Ingredient_name LIKE '%${ingredient_list[i]}%)),
+                  `;
+      }
+
+      query += `combined_recipes AS (
+                  SELECT recipes1.Recipe_id
+                  FROM recipes1`;
+
+      for (let i = 1; i < ingredient_list.length; i++) {
+        query += `INNER JOIN recipes${i} 
+                  ON recipes${i - 1}.Recipe_id = recipes${i}.Recipe_id)`;
+      }
+
+      query += `SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews
+          FROM combined_recipes c
+          JOIN Recipes r1 ON c.Recipe_id = r1.id
+          LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
+          GROUP BY r1.id
+          ORDER BY AVG(r2.rating), COUNT(r2.rating)
+          LIMIT ${pageSize};`
+    }
+    if (page > 1) {
+      console.log((page - 1) * pageSize);
+      queryString += `OFFSET ${(page - 1) * pageSize}`;
+    }
+
+    connection.query(query, (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json([]);
+      } else {
+        res.json(data);
+      }
+    });
   }
 }
 
-// Route 2: GET /random
-const random = async function (req, res) {
-  // you can use a ternary operator to check the value of request query values
-  // which can be particularly useful for setting the default value of queries
-  // note if users do not provide a value for the query it will be undefined, which is falsey
-  const explicit = req.query.explicit === 'true' ? 1 : 0;
 
-  // Here is a complete example of how to query the database in JavaScript.
-  // Only a small change (unrelated to querying) is required for TASK 3 in this route.
+// Route 2: GET /contributor/:contributor_id
+
+const contributor = async function (req, res) {
+  let cid = req.params.contributor_id;
+  const page = req.query.page;
+  const pageSize = req.query.page_size ?? 10;
+  if (!page) {
+    connection.query(`
+    SELECT * 
+    FROM Recipes 
+    WHERE contributor_id IN
+    (SELECT contributor_id
+    FROM Recipes
+    WHERE id = ${cid});`,
+      (err, data) => {
+        if (err || data.length === 0) {
+          console.log(err);
+          res.json({});
+        } else {
+          res.json(data);
+        }
+      });
+  } else {
+    let queryString = `
+    SELECT * 
+    FROM Recipes 
+    WHERE contributor_id IN
+    (SELECT contributor_id
+    FROM Recipes
+    WHERE id = ${cid})
+    LIMIT ${pageSize};`
+    if (page > 1) {
+      console.log((page - 1) * pageSize);
+      queryString += `OFFSET ${(page - 1) * pageSize}`;
+    }
+    connection.query(queryString, (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json({});
+      } else {
+        res.json(data);
+      }
+    });
+  }
+}
+
+// Route 3: GET /prep_time?low_prep_time=&high_prep_time=
+const prep_time = async function (req, res) {
+  const page = req.query.page;
+  const pageSize = req.query.page_size ?? 10;
+
+  let minPrep = req.query.min_prep_time;
+  let maxPrep = req.query.max_prep_time;
+  if (!req.params.min_prep_time) {
+    minPrep = 0;
+  }
+
+  if (!req.params.max_prep_time) {
+    maxPrep = 0;
+  }
+  if (!page) {
+    connection.query(`
+    WITH recipe_ids AS (
+      SELECT r.id, r.preparation_time, AVG(rv.rating) AS avg_rating
+      FROM Recipes r
+      INNER JOIN Reviews rv ON r.id = rv.Recipe_id
+      WHERE r.preparation_time BETWEEN ${minPrep} AND ${maxPrep}
+      GROUP BY r.id, r.preparation_time
+    )
+    SELECT id, preparation_time, avg_rating
+    FROM recipe_ids
+    ORDER BY avg_rating DESC;
+    '
+  `, (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json({});
+      } else {
+        res.json(data);
+      }
+    });
+  } else {
+    let queryString = `
+      WITH recipe_ids AS (
+        SELECT r.id, r.preparation_time, AVG(rv.rating) AS avg_rating
+        FROM Recipes r
+        INNER JOIN Reviews rv ON r.id = rv.Recipe_id
+        WHERE r.preparation_time BETWEEN ${minPrep} AND ${maxPrep}
+        GROUP BY r.id, r.preparation_time
+      )
+      SELECT id, preparation_time, avg_rating
+      FROM recipe_ids
+      ORDER BY avg_rating DESC;
+      LIMIT ${pageSize}`;
+    if (page > 1) {
+      console.log((page - 1) * pageSize);
+      queryString += `OFFSET ${(page - 1) * pageSize}`;
+    }
+    connection.query(queryString, (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json({});
+      } else {
+        res.json(data);
+      }
+    });
+  }
+}
+// Route 4: GET /min_rating?rating
+// Route 5: GET /similar_recipes/:recipe_name 
+// Route 6: GET /recipes?
+// Route 7: GET /some_ingredients/:<ingredients>
+
+// Route 8: GET /worst_recipes
+const worst_recipes = async function (req, res) {
+  const page = req.query.page;
+  const pageSize = req.query.page_size ?? 10;
+
+  if (!page) {
+    connection.query(`
+      SELECT r.name, AVG(revrating) as avg_rating, COUNT(rev.recipe_id) as num_reviews
+      FROM Recipes r
+      JOIN Reviews rev ON r.id = rev.recipe_id
+      WHERE rev.rating <= 1
+      GROUP BY r.name
+      HAVING COUNT(rev.recipe_id) > 10
+      ORDER BY num_reviews DESC
+    `, (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json({});
+      } else {
+        res.json(data);
+      }
+    });
+  } else {
+    let queryString = `
+      SELECT r.name, AVG(revrating) as avg_rating, COUNT(rev.recipe_id) as num_reviews
+      FROM Recipes r
+      JOIN Reviews rev ON r.id = rev.recipe_id
+      WHERE rev.rating <= 1
+      GROUP BY r.name
+      HAVING COUNT(rev.recipe_id) > 10
+      ORDER BY num_reviews DESC
+      LIMIT ${pageSize}
+    `;
+
+    if (page > 1) {
+      console.log((page - 1) * pageSize);
+      queryString += `OFFSET ${(page - 1) * pageSize}`;
+    }
+    connection.query(queryString, (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json({});
+      } else {
+        res.json(data);
+      }
+    });
+  }
+}
+
+// Route 9: GET /top_recipes/:contributor_id 
+const top_recipes_contrbutor = async function (req, res) {
+  const page = req.query.page;
+  const pageSize = req.query.page_size ?? 10;
+  let cid = req.params.contributor_id;
+
+  if (!page) {
+    connection.query(`
+      SELECT rev.Recipe_id, rev.description, AVG(rev.rating) as average_rating, COUNT(*) as num_ratings
+      FROM Reviews rev
+      WHERE rev.Recipe_id IN (SELECT rec.id FROM Recipes rec WHERE rec.contributor_id = ${cid})
+      GROUP BY (Recipe_id)
+      ORDER BY average_rating DESC, num_ratings DESC
+    `, (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json({});
+      } else {
+        res.json(data);
+      }
+    });
+  } else {
+    let queryString = `
+      SELECT rev.Recipe_id, rev.description, AVG(rev.rating) as average_rating, COUNT(*) as num_ratings
+      FROM Reviews rev
+      WHERE rev.Recipe_id IN (SELECT rec.id FROM Recipes rec WHERE rec.contributor_id = ${cid})
+      GROUP BY (Recipe_id)
+      ORDER BY average_rating DESC, num_ratings DESC
+      LIMIT ${pageSize}
+    `;
+
+    if (page > 1) {
+      console.log((page - 1) * pageSize);
+      queryString += `OFFSET ${(page - 1) * pageSize}`;
+    }
+    connection.query(queryString, (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json({});
+      } else {
+        res.json(data);
+      }
+    });
+  }
+}
+
+// Route 10: GET /top_recipes
+const top_recipes = async function (req, res) {
+  const page = req.query.page;
+  const pageSize = req.query.page_size ?? 10;
+
+  if (!page) {
+    connection.query(`
+      SELECT R.rid, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, Rv.rating
+      FROM Recipes R JOIN Reviews Rv ON R.id = Rv.Recipe_id
+      WHERE Rv.rating = 5
+      ORDER BY R.name
+    `, (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json({});
+      } else {
+        res.json(data);
+      }
+    });
+  } else {
+    let queryString = `
+      SELECT R.rid, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, Rv.rating
+      FROM Recipes R JOIN Reviews Rv ON R.id = Rv.Recipe_id
+      WHERE Rv.rating = 5
+      ORDER BY R.name
+      LIMIT ${pageSize}
+    `;
+
+    if (page > 1) {
+      console.log((page - 1) * pageSize);
+      queryString += `OFFSET ${(page - 1) * pageSize}`;
+    }
+    connection.query(queryString, (err, data) => {
+      if (err || data.length === 0) {
+        console.log(err);
+        res.json({});
+      } else {
+        res.json(data);
+      }
+    });
+  }
+}
+
+// Route 11: GET /random
+const random = async function (req, res) {
   connection.query(`
-    SELECT *
-    FROM Songs
-    WHERE explicit <= ${explicit}
+    SELECT R.rid, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, Rv.rating
+    FROM Recipes R JOIN Reviews Rv ON R.id = Rv.Recipe_id
+    WHERE Rv.rating >= 4
     ORDER BY RAND()
     LIMIT 1
   `, (err, data) => {
     if (err || data.length === 0) {
-      // if there is an error for some reason, or if the query is empty (this should not be possible)
-      // print the error message and return an empty object instead
       console.log(err);
       res.json({});
     } else {
-      // Here, we return results of the query as an object, keeping only relevant data
-      // being song_id and title which you will add. In this case, there is only one song
-      // so we just directly access the first element of the query results array (data)
       res.json({
-        song_id: data[0].song_id,
-        title: data[0].title
+        rid: data[0].id,
+        name: data[0].name,
+        steps: data[0].steps,
+        calories: data[0].calories,
+        contributor_id: data[0].contributor_id,
+        num_ingredients: data[0].num_ingredients,
+        rating: data[0].rating
       });
     }
   });
 }
-
-/********************************
- * BASIC SONG/ALBUM INFO ROUTES *
- ********************************/
-
-// Route 3: GET /song/:song_id
-const song = async function (req, res) {
-  // Most of the code is already written for you, you just need to fill in the query
-  connection.query(`
+// Route 12: GET /recipe/:recipe_id
+const recipe = async function (req, res) {
+  let rid = req.query.rid;
+  let queryString = `
     SELECT *
-    FROM Songs
-    WHERE song_id = '${req.params.song_id}'
-  `, (err, data) => {
-    if (err || data.length === 0) {
-      console.log(err);
-      res.json({});
-    } else {
-      res.json(data[0]);
-    }
-  });
-}
-
-// Route 4: GET /album/:album_id
-const album = async function (req, res) {
-  connection.query(`
-    SELECT *
-    FROM Albums
-    WHERE album_id = '${req.params.album_id}'
-  `, (err, data) => {
-    if (err || data.length === 0) {
-      console.log(err);
-      res.json({});
-    } else {
-      res.json(data[0]);
-    }
-  });
-}
-
-// Route 5: GET /albums
-const albums = async function (req, res) {
-  connection.query(`
-    SELECT *
-    FROM Albums
-    ORDER BY release_date DESC
-  `, (err, data) => {
+    FROM recipes
+    WHERE rid = ${rid}
+  `;
+  connection.query(queryString, (err, data) => {
     if (err || data.length === 0) {
       console.log(err);
       res.json({});
@@ -120,22 +446,10 @@ const albums = async function (req, res) {
   });
 }
 
-// Route 6: GET /album_songs/:album_id
-const album_songs = async function (req, res) {
-  connection.query(`
-    SELECT song_id, title, number, duration, plays
-    FROM Songs 
-    WHERE album_id = '${req.params.album_id}'
-    ORDER BY number ASC
-  `, (err, data) => {
-    if (err || data.length === 0) {
-      console.log(err);
-      res.json({});
-    } else {
-      res.json(data);
-    }
-  });
-}
+
+//TODO: update module.exports
+
+
 
 /************************
  * ADVANCED INFO ROUTES *
@@ -186,65 +500,9 @@ const top_songs = async function (req, res) {
   }
 }
 
-// Route 8: GET /top_albums
-const top_albums = async function (req, res) {
-  const page = req.query.page;
-  const pageSize = req.query.page_size ?? 10;
 
-  if (!page) {
-    connection.query(`
-      WITH total_plays_per_album AS (
-        SELECT album_id, SUM(plays) as total_plays
-        FROM Songs
-        GROUP BY album_id
-      )
-      
-      SELECT a.album_id, a.title, t.total_plays as plays
-      FROM Albums a 
-      JOIN total_plays_per_album t
-      ON a.album_id = t.album_id
-      ORDER BY t.total_plays DESC
-    `, (err, data) => {
-      if (err || data.length === 0) {
-        console.log(err);
-        res.json({});
-      } else {
-        res.json(data);
-      }
-    });
-  } else {
-    let queryString = `
-      WITH total_plays_per_album AS (
-        SELECT album_id, SUM(plays) as total_plays
-        FROM Songs
-        GROUP BY album_id
-      )
-      
-      SELECT a.album_id, a.title, t.total_plays as plays
-      FROM Albums a 
-      JOIN total_plays_per_album t
-      ON a.album_id = t.album_id
-      ORDER BY t.total_plays DESC
-      LIMIT ${pageSize}
-    `;
-
-    if (page > 1) {
-      queryString += `OFFSET ${(page - 1) * pageSize}`;
-    }
-
-    connection.query(queryString, (err, data) => {
-      if (err || data.length === 0) {
-        console.log(err);
-        res.json({});
-      } else {
-        res.json(data);
-      }
-    });
-  }
-}
-
-// Route 9: GET /search_songs
-const search_songs = async function (req, res) {
+// Route 9: GET /top_prices/:contributor
+const top_prices = async function (req, res) {
   const title = req.query.title ?? '';
   const durationLow = req.query.duration_low ?? 60;
   const durationHigh = req.query.duration_high ?? 660;
@@ -279,13 +537,16 @@ const search_songs = async function (req, res) {
 }
 
 module.exports = {
-  author,
+  all_ingredients,
+  contributor,
+  prep_time,
+  min_rating,
+  similar_recipes,
+  recipes,
+  some_ingredients,
+  worst_recipes,
+  top_recipes_contrbutor,
+  top_recipes,
   random,
-  song,
-  album,
-  albums,
-  album_songs,
-  top_songs,
-  top_albums,
-  search_songs,
+  recipe
 }
