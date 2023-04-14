@@ -152,7 +152,6 @@ const all_ingredients = async function (req, res) {
 
 
 // Route 2: GET /contributor/:contributor_id
-
 const contributor = async function (req, res) {
   let cid = req.params.contributor_id;
   console.log(cid);
@@ -262,7 +261,6 @@ const prep_time = async function (req, res) {
 }
 
 // Route 4: GET /min_rating?rating
-
 const min_rating = async function (req, res) {
   const page = req.query.page;
   const pageSize = req.query.page_size ?? 10;
@@ -380,7 +378,7 @@ const some_ingredients = async function (req, res) {
   const pageSize = req.query.page_size ?? 10;
   let query = "";
   if (!page) {
-    if (ingredient_list.length > 1) {
+    if (ingredient_list.length >= 1) {
       query += "WITH ";
       for (let i = 0; i < ingredient_list.length; i++) {
         query += `recipes${i} AS
@@ -395,15 +393,12 @@ const some_ingredients = async function (req, res) {
 
       query += `all_recipe_ids AS (`;
       for (let i = 0; i < ingredient_list.length; i++) {
-        query += `SELECT Recipe_id
-                  FROM recipes${i}, 
-                  `;
+        query += `SELECT Recipe_id FROM recipes${i} `;
         if (i !== ingredient_list.length - 1) {
-          query += "UNION ALL "
+          query += "UNION ALL\n"
         }
       }
-      query += `),
-      `;
+      query += `),\n`;
 
 
       query += `all_recipes AS (
@@ -418,6 +413,7 @@ const some_ingredients = async function (req, res) {
         ORDER BY a.num_matches`;
     }
 
+    console.log(query);
     connection.query(query, (err, data) => {
       if (err || data.length === 0 || query === "") {
         console.log(err);
@@ -427,8 +423,7 @@ const some_ingredients = async function (req, res) {
       }
     });
   } else {
-
-    if (ingredient_list.length > 1) {
+    if (ingredient_list.length >= 1) {
       query += "WITH ";
       for (let i = 0; i < ingredient_list.length; i++) {
         query += `recipes${i} AS
@@ -443,14 +438,12 @@ const some_ingredients = async function (req, res) {
 
       query += `all_recipe_ids AS (`;
       for (let i = 0; i < ingredient_list.length; i++) {
-        query += `SELECT Recipe_id
-                  FROM recipes${i}, 
-                  `;
+        query += `SELECT Recipe_id FROM recipes${i} `;
         if (i !== ingredient_list.length - 1) {
-          query += "UNION ALL"
+          query += "UNION ALL\n"
         }
       }
-      query += '),';
+      query += `),\n`;
 
 
       query += `all_recipes AS (
@@ -462,16 +455,18 @@ const some_ingredients = async function (req, res) {
       query += `SELECT r.* 
         FROM all_recipes a 
         JOIN Recipes r ON a.Recipe_id = r.id
-        ORDER BY a.num_matches`;
+        ORDER BY a.num_matches
+        LIMIT ${pageSize} `;
     }
 
     if (page > 1) {
       console.log((page - 1) * pageSize);
-      queryString += `OFFSET ${(page - 1) * pageSize}`;
+      query += `OFFSET ${(page - 1) * pageSize}`;
     }
 
+    console.log(query);
     connection.query(query, (err, data) => {
-      if (err || data.length === 0) {
+      if (err || data.length === 0 || query === "") {
         console.log(err);
         res.json([]);
       } else {
