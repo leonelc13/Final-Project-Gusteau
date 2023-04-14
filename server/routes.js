@@ -2,7 +2,7 @@ const mysql = require('mysql')
 const config = require('./config.json')
 
 
-// TODO: test 2,3,4,5,6,7,8,10
+// TODO: test 1,2,3,4,5,6,7,8,10
 
 // Creates MySQL connection using database credential provided in config.json
 // Do not edit. If the connection fails, make sure to check that config.json is filled out correctly
@@ -15,8 +15,7 @@ const connection = mysql.createConnection({
 });
 connection.connect((err) => err && console.log(err));
 
-// Route 1: GET /all_ingredients/:<ingredients>
-
+// Route 1: GET /all_ingredients/:<ingredients>?page=<>&page_size=<>
 const all_ingredients = async function (req, res) {
   const ingredient_list = req.params.ingredients.split(' ');
 
@@ -24,13 +23,7 @@ const all_ingredients = async function (req, res) {
   const pageSize = req.query.page_size ?? 10;
   let query = "";
   if (!page) {
-    if (ingredient_list.length === 0) {
-      query += `SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews
-        FROM Recipes r1
-        LEFT JOIN Reviews r2 ON r1.Recipe_id = r2.Recipe_id
-        GROUP BY r1.id
-        ORDER BY AVG(r2.rating), COUNT(r2.rating)`;
-    } else if (ingredient_list.length == 1) {
+    if (ingredient_list.length == 1) {
       query += `WITH combined_recipes AS 
         (SELECT Recipe_id 
         FROM Recipe_Ingredient
@@ -46,7 +39,7 @@ const all_ingredients = async function (req, res) {
           GROUP BY r1.id
           ORDER BY AVG(r2.rating), COUNT(r2.rating)`;
 
-    } else {
+    } else if (ingredient_list.length > 1) {
       query += "WITH ";
       for (let i = 0; i < ingredient_list.length; i++) {
         query += `recipes${i} AS
@@ -65,19 +58,24 @@ const all_ingredients = async function (req, res) {
 
       for (let i = 1; i < ingredient_list.length; i++) {
         query += `INNER JOIN recipes${i} 
-                  ON recipes${i - 1}.Recipe_id = recipes${i}.Recipe_id) `;
+                  ON recipes${i - 1}.Recipe_id = recipes${i}.Recipe_id `;
+
+        if (i === ingredient_list.length - 1) {
+          query += `) \n`;
+        }
       }
 
       query += `SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews
           FROM combined_recipes c
           JOIN Recipes r1 ON c.Recipe_id = r1.id
           LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
+          WHERE r1.num_ingredients >= ${ingredient_list.length}
           GROUP BY r1.id
           ORDER BY AVG(r2.rating), COUNT(r2.rating)`
     }
 
     connection.query(query, (err, data) => {
-      if (err || data.length === 0) {
+      if (query === '' || err || data.length === 0) {
         console.log(err);
         res.json([]);
       } else {
@@ -85,31 +83,23 @@ const all_ingredients = async function (req, res) {
       }
     });
   } else {
-    if (ingredient_list.length === 0) {
-      query += `SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews
-        FROM Recipes r1
-        LEFT JOIN Reviews r2 ON r1.Recipe_id = r2.Recipe_id
-        GROUP BY r1.id
-        ORDER BY AVG(r2.rating), COUNT(r2.rating)
-        LIMIT ${pageSize}`;
-    } else if (ingredient_list.length == 1) {
-      query += `WITH combined_recipes} AS 
+    if (ingredient_list.length == 1) {
+      query += `WITH combined_recipes AS 
         (SELECT Recipe_id 
         FROM Recipe_Ingredient
         WHERE Ingredient_id IN
           (SELECT Ingredient_id
           FROM Ingredients
-          WHERE Ingredient_name LIKE '%${ingredient_list[0]}%))
+          WHERE Ingredient_name LIKE '%${ingredient_list[0]}%'))
         
           SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews
           FROM combined_recipes c
           JOIN Recipes r1 ON c.Recipe_id = r1.id
           LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
           GROUP BY r1.id
-          ORDER BY AVG(r2.rating), COUNT(r2.rating)
-          LIMIT ${pageSize}`;
+          ORDER BY AVG(r2.rating), COUNT(r2.rating)`;
 
-    } else {
+    } else if (ingredient_list.length > 1) {
       query += "WITH ";
       for (let i = 0; i < ingredient_list.length; i++) {
         query += `recipes${i} AS
@@ -118,34 +108,39 @@ const all_ingredients = async function (req, res) {
                     WHERE Ingredient_id IN
                       (SELECT Ingredient_id
                       FROM Ingredients
-                      WHERE Ingredient_name LIKE '%${ingredient_list[i]}%)), 
+                      WHERE Ingredient_name LIKE '%${ingredient_list[i]}%')), 
                   `;
       }
 
       query += `combined_recipes AS (
-                  SELECT recipes1.Recipe_id
-                  FROM recipes1`;
+                  SELECT recipes0.Recipe_id
+                  FROM recipes0 `;
 
       for (let i = 1; i < ingredient_list.length; i++) {
         query += `INNER JOIN recipes${i} 
-                  ON recipes${i - 1}.Recipe_id = recipes${i}.Recipe_id)`;
+                  ON recipes${i - 1}.Recipe_id = recipes${i}.Recipe_id `;
+
+        if (i === ingredient_list.length - 1) {
+          query += `) \n`;
+        }
       }
 
       query += `SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews
           FROM combined_recipes c
           JOIN Recipes r1 ON c.Recipe_id = r1.id
           LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
+          WHERE r1.num_ingredients >= ${ingredient_list.length}
           GROUP BY r1.id
           ORDER BY AVG(r2.rating), COUNT(r2.rating)
-          LIMIT ${pageSize};`
+          LIMIT ${pageSize} `
     }
     if (page > 1) {
       console.log((page - 1) * pageSize);
-      queryString += `OFFSET ${(page - 1) * pageSize}`;
+      query += `OFFSET ${(page - 1) * pageSize}`;
     }
 
     connection.query(query, (err, data) => {
-      if (err || data.length === 0) {
+      if (query === '' || err || data.length === 0) {
         console.log(err);
         res.json([]);
       } else {
