@@ -492,8 +492,8 @@ const worst_recipes = async function (req, res) {
       SELECT r.name, AVG(rev.rating) as avg_rating, COUNT(rev.recipe_id) as num_reviews, r.id, r.steps, r.calories, rev.description, r.num_ingredients, r.contributor_id
       FROM Recipes r
       JOIN Reviews rev ON r.id = rev.recipe_id
-      GROUP BY r.name
-      HAVING COUNT(rev.recipe_id) > 10
+      GROUP BY r.id
+      HAVING COUNT(rev.recipe_id) > 3
       ORDER BY num_reviews DESC, avg_rating ASC
     `, (err, data) => {
       if (err || data.length === 0) {
@@ -508,8 +508,8 @@ const worst_recipes = async function (req, res) {
       SELECT r.name, AVG(rev.rating) as avg_rating, COUNT(rev.recipe_id) as num_reviews, r.id, r.steps, r.calories, rev.description, r.num_ingredients, r.contributor_id
       FROM Recipes r
       JOIN Reviews rev ON r.id = rev.recipe_id
-      GROUP BY r.name
-      HAVING COUNT(rev.recipe_id) > 10
+      GROUP BY r.id
+      HAVING COUNT(rev.recipe_id) > 3
       ORDER BY num_reviews DESC, avg_rating ASC
       LIMIT ${pageSize}
     `;
@@ -658,9 +658,6 @@ ORDER BY average_rating DESC;
 
 // Route 11: GET /random
 const random = async function (req, res) {
-
-
-
   connection.query(`
   SELECT R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, AVG(Rv.rating) AS avg_rating
   FROM Recipes R JOIN Reviews Rv ON R.id = Rv.Recipe_id
