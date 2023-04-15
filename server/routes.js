@@ -2,7 +2,7 @@ const mysql = require('mysql')
 const config = require('./config.json')
 
 
-// TODO: test 2,3,4,5,6,8,10
+// TODO: test 2,3,5,6,10
 // TODO: given recipe id, get price of all ingredients per 100g
 // TODO: price in diff country?
 
