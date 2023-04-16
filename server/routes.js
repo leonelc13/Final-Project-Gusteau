@@ -591,38 +591,15 @@ const top_recipes = async function (req, res) {
   const page = req.query.page;
   const pageSize = req.query.page_size ?? 10;
 
-  // WITH recipe_cost AS (WITH joined_recipe_and_ingrediants AS (SELECT ri.Ingredient_id, ri.Recipe_id
-  //   FROM Recipes rec JOIN Recipe_Ingredient ri on rec.id = ri.Recipe_id)
-  //   SELECT *, SUM(ip.price) as price, ri.Recipe_id
-  //   FROM Prices ip JOIN joined_recipe_and_ingrediants ri ON ip.ingrediant_id = ri.Ingredient_id
-  //   GROUP BY ri.Recipe_id)
-  //   SELECT rec.*, AVG(rev.rating) as average_rating, rc.price
-  //   FROM Reviews rev JOIN Recipes rec ON rev.Recipe_id = rec.Recipe_id
-  //       JOIN recipe_cost rc ON rc.Recipe_id = rev.Recipe_id
-  //   GROUP BY rev.Recipe_id
-  //   ORDER BY average_rating;
 
-  // SELECT R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, AVG(Rv.rating) AS avg_rating, COUNT(*) AS num_ratings
-  // FROM Recipes R JOIN Reviews Rv ON R.id = Rv.Recipe_id
-  // GROUP BY R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients
-  // HAVING avg_rating >= 4.9 AND num_ratings >= 10
-  // ORDER BY avg_rating DESC
 
   if (!page) {
     connection.query(`
-    WITH recipe_cost AS 
-  (WITH joined_recipe_and_ingredients AS 
-    (SELECT ri.Ingredient_id, ri.Recipe_id
-     FROM Recipes rec JOIN Recipe_Ingredient ri ON rec.id = ri.Recipe_id)
-   SELECT ri.Recipe_id, SUM(ip.price) AS price
-   FROM Prices ip JOIN joined_recipe_and_ingredients ri ON ip.ingredient_id = ri.Ingredient_id
-   GROUP BY ri.Recipe_id)
-SELECT rec.*, AVG(rev.rating) AS average_rating, rc.price AS total_cost
-FROM Reviews rev 
-JOIN Recipes rec ON rev.Recipe_id = rec.id 
-JOIN recipe_cost rc ON rc.Recipe_id = rec.id
-GROUP BY rec.id
-ORDER BY average_rating DESC;
+    SELECT R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, AVG(Rv.rating) AS avg_rating, COUNT(*) AS num_ratings
+    FROM Recipes R JOIN Reviews Rv ON R.id = Rv.Recipe_id
+    GROUP BY R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients
+    HAVING avg_rating >= 4.9 AND num_ratings >= 10
+    ORDER BY avg_rating DESC
     `, (err, data) => {
       if (err || data.length === 0) {
         console.log(err);
