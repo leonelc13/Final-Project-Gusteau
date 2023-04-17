@@ -278,16 +278,16 @@ const min_rating = async function (req, res) {
   if (!page) {
     connection.query(`
       WITH recipe_ratings AS (
-        SELECT r.name, AVG(rev.rating) as avg_rating, COUNT(rev.recipe_id) as num_reviews, r.recipe_id
+        SELECT r.name, AVG(rev.rating) as avg_rating, COUNT(rev.recipe_id) as num_reviews, r.id
         FROM Recipes r
-        JOIN Reviews rev ON r.recipe_id = rev.recipe_id
-        GROUP BY r.name
-        HAVING COUNT(rev.recipe_id) > 10
-      ) 
+        JOIN Reviews rev ON r.id = rev.recipe_id
+        GROUP BY r.id
+        HAVING COUNT(rev.recipe_id) > 3
+      )
 
-      SELECT R.id, R.steps, R.contributor_id, R.preparation_time, R.calories, rv.rating
+      SELECT R.id, R.preparation_time, R.calories, rv.avg_rating
       FROM Recipes R
-      JOIN recipe_ratings rv ON R.recipe_id = rv.recipe_id
+      JOIN recipe_ratings rv ON R.id = rv.id
       WHERE rv.avg_rating >= ${rating}
     `, (err, data) => {
       if (err || data.length === 0) {
@@ -300,16 +300,16 @@ const min_rating = async function (req, res) {
   } else {
     let queryString = `
       WITH recipe_ratings AS (
-        SELECT r.name, AVG(rev.rating) as avg_rating, COUNT(rev.recipe_id) as num_reviews, r.recipe_id
+        SELECT r.name, AVG(rev.rating) as avg_rating, COUNT(rev.recipe_id) as num_reviews, r.id
         FROM Recipes r
-        JOIN Reviews rev ON r.recipe_id = rev.recipe_id
-        GROUP BY r.name
-        HAVING COUNT(rev.recipe_id) > 10
-      ) 
-
-      SELECT R.id, R.steps, R.contributor_id, R.preparation_time, R.calories, rv.rating
+        JOIN Reviews rev ON r.id = rev.recipe_id
+        GROUP BY r.id
+        HAVING COUNT(rev.recipe_id) > 3
+      )
+      
+      SELECT R.id, R.preparation_time, R.calories, rv.avg_rating
       FROM Recipes R
-      JOIN recipe_ratings rv ON R.recipe_id = rv.recipe_id
+      JOIN recipe_ratings rv ON R.id = rv.id
       WHERE rv.avg_rating >= ${rating}
       LIMIT ${pageSize}
     `;
