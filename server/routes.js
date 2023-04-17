@@ -278,16 +278,16 @@ const min_rating = async function (req, res) {
   if (!page) {
     connection.query(`
       WITH recipe_ratings AS (
-        SELECT r.name, AVG(rev.rating) as avg_rating, COUNT(rev.recipe_id) as num_reviews, r.recipe_id
+        SELECT r.name, AVG(rev.rating) as avg_rating, COUNT(rev.recipe_id) as num_reviews, r.id
         FROM Recipes r
-        JOIN Reviews rev ON r.recipe_id = rev.recipe_id
-        GROUP BY r.name
-        HAVING COUNT(rev.recipe_id) > 10
-      ) 
+        JOIN Reviews rev ON r.id = rev.recipe_id
+        GROUP BY r.id
+        HAVING COUNT(rev.recipe_id) > 3
+      )
 
-      SELECT R.id, R.steps, R.contributor_id, R.preparation_time, R.calories, rv.rating
+      SELECT R.id, R.preparation_time, R.calories, rv.avg_rating
       FROM Recipes R
-      JOIN recipe_ratings rv ON R.recipe_id = rv.recipe_id
+      JOIN recipe_ratings rv ON R.id = rv.id
       WHERE rv.avg_rating >= ${rating}
     `, (err, data) => {
       if (err || data.length === 0) {
@@ -300,16 +300,16 @@ const min_rating = async function (req, res) {
   } else {
     let queryString = `
       WITH recipe_ratings AS (
-        SELECT r.name, AVG(rev.rating) as avg_rating, COUNT(rev.recipe_id) as num_reviews, r.recipe_id
+        SELECT r.name, AVG(rev.rating) as avg_rating, COUNT(rev.recipe_id) as num_reviews, r.id
         FROM Recipes r
-        JOIN Reviews rev ON r.recipe_id = rev.recipe_id
-        GROUP BY r.name
-        HAVING COUNT(rev.recipe_id) > 10
-      ) 
-
-      SELECT R.id, R.steps, R.contributor_id, R.preparation_time, R.calories, rv.rating
+        JOIN Reviews rev ON r.id = rev.recipe_id
+        GROUP BY r.id
+        HAVING COUNT(rev.recipe_id) > 3
+      )
+      
+      SELECT R.id, R.preparation_time, R.calories, rv.avg_rating
       FROM Recipes R
-      JOIN recipe_ratings rv ON R.recipe_id = rv.recipe_id
+      JOIN recipe_ratings rv ON R.id = rv.id
       WHERE rv.avg_rating >= ${rating}
       LIMIT ${pageSize}
     `;
@@ -369,150 +369,45 @@ const similar_recipes = async function (req, res) {
   }
 }
 
-// Route 6: GET /recipes?
-const recipes = async function (req, res) {
-  const ingredient_list = req.params.ingredients.split(' ');
-  const max_prep_time = parseInt(req.query.max_prep_time);
-
+// Route 6: GET /recipe_cost/:recipe_id
+const recipe_price = async function (req, res) {
   const page = req.query.page;
-  const pageSize = req.query.page_size ?? 10;
-  let query = "";
-
-  const recipe_cost = `recipe_cost AS (
-                        WITH joined_recipe_and_ingredients AS (
-                          SELECT ri.Ingredient_id, ri.Recipe_id
-                          FROM Recipes rec 
-                          JOIN Recipe_Ingredient ri ON rec.id = ri.Recipe_id
-                        )
-                        SELECT Recipe_id, SUM(price_per_unit * quantity) AS total_cost
-                        FROM joined_recipe_and_ingredients jri
-                        JOIN Ingredients ing ON jri.Ingredient_id = ing.Ingredient_id
-                        GROUP BY Recipe_id
-                      )`;
+  const pageSize = req.query.page_size ?? 10; 
+  let rid = req.params.recipe_id;
 
   if (!page) {
-    if (ingredient_list.length == 1) {
-      query += `${recipe_cost}
-        WITH combined_recipes AS 
-        (SELECT Recipe_id 
-        FROM Recipe_Ingredient
-        WHERE Ingredient_id IN
-          (SELECT Ingredient_id
-          FROM Ingredients
-          WHERE Ingredient_name LIKE '%${ingredient_list[0]}%'))
-        
-          SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews, recipe_cost.total_cost
-          FROM combined_recipes c
-          JOIN Recipes r1 ON c.Recipe_id = r1.id
-          LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
-          LEFT JOIN recipe_cost ON c.Recipe_id = recipe_cost.Recipe_id
-          GROUP BY r1.id
-          ORDER BY AVG(r2.rating), COUNT(r2.rating)`;
-
-    } else if (ingredient_list.length > 1) {
-      query += `${recipe_cost} WITH `;
-      for (let i = 0; i < ingredient_list.length; i++) {
-        query += `recipes${i} AS
-                    (SELECT Recipe_id 
-                    FROM Recipe_Ingredient
-                    WHERE Ingredient_id IN
-                      (SELECT Ingredient_id
-                      FROM Ingredients
-                      WHERE Ingredient_name LIKE '%${ingredient_list[i]}%')), 
-                  `;
-      }
-
-      query += `combined_recipes AS (
-                  SELECT recipes0.Recipe_id
-                  FROM recipes0 `;
-
-      for (let i = 1; i < ingredient_list.length; i++) {
-        query += `INNER JOIN recipes${i} 
-                  ON recipes${i - 1}.Recipe_id = recipes${i}.Recipe_id `;
-
-        if (i === ingredient_list.length - 1) {
-          query += `) \n`;
-        }
-      }
-
-      query += `SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews, recipe_cost.total_cost
-          FROM combined_recipes c
-          JOIN Recipes r1 ON c.Recipe_id = r1.id
-          LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
-          LEFT JOIN recipe_cost ON c.Recipe_id = recipe_cost.Recipe_id
-          WHERE r1.num_ingredients >= ${ingredient_list.length} AND r1.preparation_time <= ${max_prep_time} 
-          GROUP BY r1.id
-          ORDER BY AVG(r2.rating), COUNT(r2.rating)`
-    }
-
-    connection.query(query, (err, data) => {
-      if (query === '' || err || data.length === 0) {
+    connection.query(`
+    Select I.Ingredient_name, IP.country, IP.unit, IP.price
+    From Recipe_Ingredient ri
+        JOIN Prices IP on ri.Ingredient_id = IP.Ingredient_id
+        JOIN Ingredients I on I.Ingredient_id = ri.Ingredient_id
+    WHERE ri.Recipe_id = '${rid}'
+    `, (err, data) => {
+      if (err || data.length === 0) {
         console.log(err);
-        res.json([]);
+        res.json({});
       } else {
         res.json(data);
       }
     });
   } else {
-    if (ingredient_list.length == 1) {
-      query += `${recipe_cost}
-        WITH combined_recipes AS
-        (SELECT Recipe_id
-        FROM Recipe_Ingredient
-        WHERE Ingredient_id IN
-        (SELECT Ingredient_id
-        FROM Ingredients
-        WHERE Ingredient_name LIKE '%${ingredient_list[0]}%'))
-        SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews, recipe_cost.total_cost
-        FROM combined_recipes c
-        JOIN Recipes r1 ON c.Recipe_id = r1.id
-        LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
-        LEFT JOIN recipe_cost ON c.Recipe_id = recipe_cost.Recipe_id
-        GROUP BY r1.id
-        ORDER BY AVG(r2.rating), COUNT(r2.rating)
-        LIMIT ${(page - 1) * pageSize}, ${pageSize}`;
+    let queryString = `
+    Select I.Ingredient_name, IP.country, IP.unit, IP.price
+    From Recipe_Ingredient ri
+        JOIN Prices IP on ri.Ingredient_id = IP.Ingredient_id
+        JOIN Ingredients I on I.Ingredient_id = ri.Ingredient_id
+    WHERE ri.Recipe_id = '${rid}'
+      LIMIT ${pageSize}
+    `;
 
-    } else if (ingredient_list.length > 1) {
-      query += `${recipe_cost} WITH `;
-      for (let i = 0; i < ingredient_list.length; i++) {
-        query += `recipes${i} AS
-                  (SELECT Recipe_id 
-                  FROM Recipe_Ingredient
-                  WHERE Ingredient_id IN
-                    (SELECT Ingredient_id
-                    FROM Ingredients
-                    WHERE Ingredient_name LIKE '%${ingredient_list[i]}%')), 
-                `;
-      }
-
-      query += `combined_recipes AS (
-                SELECT recipes0.Recipe_id
-                FROM recipes0 `;
-
-      for (let i = 1; i < ingredient_list.length; i++) {
-        query += `INNER JOIN recipes${i} 
-                ON recipes${i - 1}.Recipe_id = recipes${i}.Recipe_id `;
-
-        if (i === ingredient_list.length - 1) {
-          query += `) \n`;
-        }
-      }
-
-      query += `SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews, recipe_cost.total_cost
-        FROM combined_recipes c
-        JOIN Recipes r1 ON c.Recipe_id = r1.id
-        LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
-        LEFT JOIN recipe_cost ON c.Recipe_id = recipe_cost.Recipe_id
-        WHERE r1.num_ingredients >= ${ingredient_list.length} AND r1.preparation_time <= ${max_prep_time} 
-        GROUP BY r1.id
-        ORDER BY AVG(r2.rating), COUNT(r2.rating)
-        LIMIT ${(page - 1) * pageSize}, ${pageSize}`
+    if (page > 1) {
+      console.log((page - 1) * pageSize);
+      queryString += `OFFSET ${(page - 1) * pageSize}`;
     }
-
-    connection.query(query, (err, data) => {
-      if (query === '' || err || data.length === 0) {
+    connection.query(queryString, (err, data) => {
+      if (err || data.length === 0) {
         console.log(err);
-        res.json([]);
+        res.json({});
       } else {
         res.json(data);
       }
@@ -845,7 +740,7 @@ module.exports = {
   prep_time,
   min_rating,
   similar_recipes,
-  recipes,
+  recipe_price,
   some_ingredients,
   worst_recipes,
   top_recipes_contributor,

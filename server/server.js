@@ -16,7 +16,7 @@ app.get('/contributor/:contributor_id', routes.contributor);
 app.get('/prep_time', routes.prep_time);
 app.get('/min_rating', routes.min_rating);
 app.get('/similar_recipes/:recipe_name', routes.similar_recipes)
-app.get('/recipes/:ingrediants', routes.recipes)
+app.get('/recipe_cost/:recipe_id', routes.recipe_price)
 app.get('/some_ingredients/:ingredients', routes.some_ingredients);
 app.get('/worst_recipes', routes.worst_recipes)
 app.get('/top_recipes/:contributor_id', routes.top_recipes_contributor);
