@@ -377,9 +377,23 @@ const recipes = async function (req, res) {
   const page = req.query.page;
   const pageSize = req.query.page_size ?? 10;
   let query = "";
+
+  const recipe_cost = `recipe_cost AS (
+                        WITH joined_recipe_and_ingredients AS (
+                          SELECT ri.Ingredient_id, ri.Recipe_id
+                          FROM Recipes rec 
+                          JOIN Recipe_Ingredient ri ON rec.id = ri.Recipe_id
+                        )
+                        SELECT Recipe_id, SUM(price_per_unit * quantity) AS total_cost
+                        FROM joined_recipe_and_ingredients jri
+                        JOIN Ingredients ing ON jri.Ingredient_id = ing.Ingredient_id
+                        GROUP BY Recipe_id
+                      )`;
+
   if (!page) {
     if (ingredient_list.length == 1) {
-      query += `WITH combined_recipes AS 
+      query += `${recipe_cost}
+        WITH combined_recipes AS 
         (SELECT Recipe_id 
         FROM Recipe_Ingredient
         WHERE Ingredient_id IN
@@ -387,15 +401,16 @@ const recipes = async function (req, res) {
           FROM Ingredients
           WHERE Ingredient_name LIKE '%${ingredient_list[0]}%'))
         
-          SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews
+          SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews, recipe_cost.total_cost
           FROM combined_recipes c
           JOIN Recipes r1 ON c.Recipe_id = r1.id
           LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
+          LEFT JOIN recipe_cost ON c.Recipe_id = recipe_cost.Recipe_id
           GROUP BY r1.id
           ORDER BY AVG(r2.rating), COUNT(r2.rating)`;
 
     } else if (ingredient_list.length > 1) {
-      query += "WITH ";
+      query += `${recipe_cost} WITH `;
       for (let i = 0; i < ingredient_list.length; i++) {
         query += `recipes${i} AS
                     (SELECT Recipe_id 
@@ -420,10 +435,11 @@ const recipes = async function (req, res) {
         }
       }
 
-      query += `SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews
+      query += `SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews, recipe_cost.total_cost
           FROM combined_recipes c
           JOIN Recipes r1 ON c.Recipe_id = r1.id
           LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
+          LEFT JOIN recipe_cost ON c.Recipe_id = recipe_cost.Recipe_id
           WHERE r1.num_ingredients >= ${ingredient_list.length} AND r1.preparation_time <= ${max_prep_time} 
           GROUP BY r1.id
           ORDER BY AVG(r2.rating), COUNT(r2.rating)`
@@ -439,59 +455,58 @@ const recipes = async function (req, res) {
     });
   } else {
     if (ingredient_list.length == 1) {
-      query += `WITH combined_recipes AS 
-        (SELECT Recipe_id 
+      query += `${recipe_cost}
+        WITH combined_recipes AS
+        (SELECT Recipe_id
         FROM Recipe_Ingredient
         WHERE Ingredient_id IN
-          (SELECT Ingredient_id
-          FROM Ingredients
-          WHERE Ingredient_name LIKE '%${ingredient_list[0]}%'))
-        
-          SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews
-          FROM combined_recipes c
-          JOIN Recipes r1 ON c.Recipe_id = r1.id
-          LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
-          GROUP BY r1.id
-          ORDER BY AVG(r2.rating), COUNT(r2.rating)`;
+        (SELECT Ingredient_id
+        FROM Ingredients
+        WHERE Ingredient_name LIKE '%${ingredient_list[0]}%'))
+        SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews, recipe_cost.total_cost
+        FROM combined_recipes c
+        JOIN Recipes r1 ON c.Recipe_id = r1.id
+        LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
+        LEFT JOIN recipe_cost ON c.Recipe_id = recipe_cost.Recipe_id
+        GROUP BY r1.id
+        ORDER BY AVG(r2.rating), COUNT(r2.rating)
+        LIMIT ${(page - 1) * pageSize}, ${pageSize}`;
 
     } else if (ingredient_list.length > 1) {
-      query += "WITH ";
+      query += `${recipe_cost} WITH `;
       for (let i = 0; i < ingredient_list.length; i++) {
         query += `recipes${i} AS
-                    (SELECT Recipe_id 
-                    FROM Recipe_Ingredient
-                    WHERE Ingredient_id IN
-                      (SELECT Ingredient_id
-                      FROM Ingredients
-                      WHERE Ingredient_name LIKE '%${ingredient_list[i]}%')), 
-                  `;
+                  (SELECT Recipe_id 
+                  FROM Recipe_Ingredient
+                  WHERE Ingredient_id IN
+                    (SELECT Ingredient_id
+                    FROM Ingredients
+                    WHERE Ingredient_name LIKE '%${ingredient_list[i]}%')), 
+                `;
       }
 
       query += `combined_recipes AS (
-                  SELECT recipes0.Recipe_id
-                  FROM recipes0 `;
+                SELECT recipes0.Recipe_id
+                FROM recipes0 `;
 
       for (let i = 1; i < ingredient_list.length; i++) {
         query += `INNER JOIN recipes${i} 
-                  ON recipes${i - 1}.Recipe_id = recipes${i}.Recipe_id `;
+                ON recipes${i - 1}.Recipe_id = recipes${i}.Recipe_id `;
 
         if (i === ingredient_list.length - 1) {
           query += `) \n`;
         }
       }
 
-      query += `SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews
-          FROM combined_recipes c
-          JOIN Recipes r1 ON c.Recipe_id = r1.id
-          LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
-          WHERE r1.num_ingredients >= ${ingredient_list.length} AND r1.preparation_time <= ${max_prep_time} 
-          GROUP BY r1.id
-          ORDER BY AVG(r2.rating), COUNT(r2.rating)
-          LIMIT ${pageSize} `
-    }
-    if (page > 1) {
-      console.log((page - 1) * pageSize);
-      query += `OFFSET ${(page - 1) * pageSize}`;
+      query += `SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews, recipe_cost.total_cost
+        FROM combined_recipes c
+        JOIN Recipes r1 ON c.Recipe_id = r1.id
+        LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
+        LEFT JOIN recipe_cost ON c.Recipe_id = recipe_cost.Recipe_id
+        WHERE r1.num_ingredients >= ${ingredient_list.length} AND r1.preparation_time <= ${max_prep_time} 
+        GROUP BY r1.id
+        ORDER BY AVG(r2.rating), COUNT(r2.rating)
+        LIMIT ${(page - 1) * pageSize}, ${pageSize}`
     }
 
     connection.query(query, (err, data) => {
@@ -503,9 +518,9 @@ const recipes = async function (req, res) {
       }
     });
   }
-
-
 }
+     
+
 
 // Route 7: GET /some_ingredients/:<ingredients>?max_prep_time=<>
 const some_ingredients = async function (req, res) {
