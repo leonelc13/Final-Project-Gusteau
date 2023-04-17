@@ -738,8 +738,6 @@ const top_recipes = async function (req, res) {
   const page = req.query.page;
   const pageSize = req.query.page_size ?? 10;
 
-
-
   if (!page) {
     connection.query(`
     SELECT R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, AVG(Rv.rating) AS avg_rating, COUNT(*) AS num_ratings
@@ -802,11 +800,33 @@ const random = async function (req, res) {
 // Route 12: GET /recipe/:recipe_id
 const recipe = async function (req, res) {
   let rid = req.params.recipe_id;
-  console.log(rid);
   let queryString = `
     SELECT *
     FROM Recipes
     WHERE id = '${rid}'
+  `;
+  connection.query(queryString, (err, data) => {
+    if (err || data.length === 0) {
+      console.log(err);
+      res.json({});
+    } else {
+      res.json(data);
+    }
+  });
+}
+
+//Route 13: GET /price/:recipe_id
+const rec_price = async function (req, res) {
+  let rid = req.params.recipe_id;
+  let queryString = `
+  WITH joined_recipe_and_ingredients AS (
+    SELECT ri.Ingredient_id, ri.Recipe_id
+    FROM Recipes rec JOIN Recipe_Ingredient ri on rec.id = ri.Recipe_id
+    WHERE rec.id = '${rid}'
+  )
+  SELECT jri.Ingredient_id, p.Ingredient_name, p.unit, AVG(p.price) AS avg_price
+  FROM joined_recipe_and_ingredients jri JOIN Prices p ON jri.Ingredient_id = p.Ingredient_id
+  GROUP BY Ingredient_id, Ingredient_name, p.unit
   `;
   connection.query(queryString, (err, data) => {
     if (err || data.length === 0) {
@@ -831,5 +851,6 @@ module.exports = {
   top_recipes_contributor,
   top_recipes,
   random,
-  recipe
+  recipe,
+  rec_price
 }
