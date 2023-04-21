@@ -22,7 +22,7 @@ connection.connect((err) => err && console.log(err));
 // to sort by price. Doesn't make sense to filter unless all ingredients in recipe have a price (unlikely...)
 const all_ingredients = async function (req, res) {
   const ingredient_list = req.params.ingredients.split(' ');
-  const max_prep_time = parseInt(req.query.max_prep_time);
+  const max_prep_time = req.query.max_prep_time ? parseInt(req.query.max_prep_time) : 200000;
 
   const page = req.query.page;
   const pageSize = req.query.page_size ?? 10;
@@ -420,7 +420,7 @@ const recipe_price = async function (req, res) {
 // Route 7: GET /some_ingredients/:<ingredients>?max_prep_time=<>
 const some_ingredients = async function (req, res) {
   const ingredient_list = req.params.ingredients.split(' ');
-  const max_prep_time = parseInt(req.query.max_prep_time);
+  const max_prep_time = req.query.max_prep_time ? parseInt(req.query.max_prep_time) : 200000;
 
   const page = req.query.page;
   const pageSize = req.query.page_size ?? 10;
