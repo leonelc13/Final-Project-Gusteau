@@ -34,9 +34,9 @@ const NavText = ({ href, text, isMain }) => {
 export default function NavBar() {
   return (
     <AppBar position='static'>
-      <Container maxWidth='xl'>
+      <Container maxWidth='s'>
         <Toolbar disableGutters>
-          <NavText href='/' text='SWIFTIFY' isMain />
+          <NavText href='/' text='Gusteau' isMain />
           <NavText href='/albums' text='ALBUMS' />
           <NavText href='/songs' text='SONGS' />
         </Toolbar>

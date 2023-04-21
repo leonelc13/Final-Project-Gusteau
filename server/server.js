@@ -24,6 +24,7 @@ app.get('/top_recipes', routes.top_recipes);
 app.get('/random', routes.random);
 app.get('/recipe/:recipe_id', routes.recipe);
 app.get('/price/:recipe_id', routes.rec_price);
+app.get('/recipes', routes.recipes)
 
 
 app.listen(config.server_port, () => {

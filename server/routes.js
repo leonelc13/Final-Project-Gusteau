@@ -372,7 +372,7 @@ const similar_recipes = async function (req, res) {
 // Route 6: GET /recipe_cost/:recipe_id
 const recipe_price = async function (req, res) {
   const page = req.query.page;
-  const pageSize = req.query.page_size ?? 10; 
+  const pageSize = req.query.page_size ?? 10;
   let rid = req.params.recipe_id;
 
   if (!page) {
@@ -414,7 +414,7 @@ const recipe_price = async function (req, res) {
     });
   }
 }
-     
+
 
 
 // Route 7: GET /some_ingredients/:<ingredients>?max_prep_time=<>
@@ -733,6 +733,21 @@ const rec_price = async function (req, res) {
   });
 }
 
+// Route 14: GET /recipes
+const recipes = async function (req, res) {
+  connection.query(`
+  SELECT DISTINCT name as label, id as id
+    FROM Recipes
+  `, (err, data) => {
+    if (err || data.length === 0) {
+      console.log(err);
+      res.json({});
+    } else {
+      res.json(data);
+    }
+  });
+}
+
 
 module.exports = {
   all_ingredients,
@@ -747,5 +762,6 @@ module.exports = {
   top_recipes,
   random,
   recipe,
-  rec_price
+  rec_price,
+  recipes
 }
