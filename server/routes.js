@@ -1,11 +1,6 @@
 const mysql = require('mysql')
 const config = require('./config.json')
 
-
-// TODO: test 2,3,5,6,10
-// TODO: given recipe id, get price of all ingredients per 100g
-// TODO: price in diff country?
-
 // Creates MySQL connection using database credential provided in config.json
 // Do not edit. If the connection fails, make sure to check that config.json is filled out correctly
 const connection = mysql.createConnection({
@@ -18,8 +13,6 @@ const connection = mysql.createConnection({
 connection.connect((err) => err && console.log(err));
 
 // Route 1: GET /all_ingredients/:<ingredients>?page=<>&page_size=<>&max_prep_time=<>
-// Note: doesn't make sense to filter by price since price is by ingredieny by gram. instead, just allow option
-// to sort by price. Doesn't make sense to filter unless all ingredients in recipe have a price (unlikely...)
 const all_ingredients = async function (req, res) {
   const ingredient_list = req.params.ingredients.split(' ');
   const max_prep_time = req.query.max_prep_time ? parseInt(req.query.max_prep_time) : 200000;
