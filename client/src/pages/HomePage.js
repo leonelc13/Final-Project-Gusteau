@@ -4,9 +4,11 @@ import { Container, Divider, Link } from '@mui/material';
 import LazyTable from '../components/LazyTable';
 import SongCard from '../components/SongCard';
 import * as React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import TextField from '@mui/material/TextField';
 import Stack from '@mui/material/Stack';
-import Autocomplete from '@mui/material/Autocomplete';
+import { Autocomplete, createFilterOptions } from '@mui/material';
 
 const config = require('../config.json');
 
@@ -15,6 +17,8 @@ export default function HomePage() {
   const [recipeOfTheDay, setRecipeOfTheDay] = useState({});
   const [allRecipes, setAllRecipes] = useState([]);
   const [author, setAuthor] = useState('');
+  const [value, setValue] = useState('');
+  const [text, setText] = useState('');
 
   const [selectedSongId, setSelectedSongId] = useState(null);
 
@@ -24,6 +28,8 @@ export default function HomePage() {
   const filterOptions = (options, state) => {
     return defaultFilterOptions(options, state).slice(0, OPTIONS_LIMIT);
   };
+
+  const navigate = useNavigate();
 
   // The useEffect hook by default runs the provided callback after every render
   // The second (optional) argument, [], is the dependency array which signals
@@ -48,10 +54,19 @@ export default function HomePage() {
       .then(resJson => { setAllRecipes(resJson) });
   }, []);
 
+  const handleKeyDown = ({ key, id }) => {
+    if (key === 'Enter') {
+      console.log("hi");
+      navigate('/recipe/100')
+    }
+  };
+
   return (
     <Container>
       <Stack spacing={2} sx={{ width: "100%", marginTop: "3%" }}>
         <Autocomplete
+          onChange={(event, value) => setText(value)}
+          onKeyDown={handleKeyDown}
           filterOptions={filterOptions}
           renderOption={(props, option) => {
             return (
@@ -78,7 +93,7 @@ export default function HomePage() {
       </Stack>
       {/* SongCard is a custom component that we made. selectedSongId && <SongCard .../> makes use of short-circuit logic to only render the SongCard if a non-null song is selected */}
       {selectedSongId && <SongCard songId={selectedSongId} handleClose={() => setSelectedSongId(null)} />}
-      <h2>Check out your song of the day:&nbsp;
+      <h2>Check out your RECIPE of the day:
         <Link onClick={() => setSelectedSongId(recipeOfTheDay.id)}>{recipeOfTheDay.name}</Link>
       </h2>
 

@@ -39,6 +39,7 @@ export default function NavBar() {
           <NavText href='/' text='Gusteau' isMain />
           <NavText href='/albums' text='ALBUMS' />
           <NavText href='/songs' text='SONGS' />
+          <NavText href='/random' text='ROTD' />
         </Toolbar>
       </Container>
     </AppBar>
