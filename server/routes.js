@@ -741,6 +741,24 @@ const recipes = async function (req, res) {
   });
 }
 
+// Route 15: GET /recipe_reviews/:recipe_id
+const recipe_reviews = async function (req, res) {
+  let rid = req.params.recipe_id;
+  let queryString = `
+    SELECT user_id, description, rating
+    FROM Reviews
+    WHERE Recipe_id = '${rid}'
+  `;
+  connection.query(queryString, (err, data) => {
+    if (err || data.length === 0) {
+      console.log(err);
+      res.json([]);
+    } else {
+      res.json(data);
+    }
+  });
+}
+
 
 module.exports = {
   all_ingredients,
@@ -756,5 +774,6 @@ module.exports = {
   random,
   recipe,
   rec_price,
-  recipes
+  recipes,
+  recipe_reviews
 }
