@@ -3,12 +3,18 @@ import { Container, Divider, Link } from '@mui/material';
 
 import LazyTable from '../components/LazyTable';
 import SongCard from '../components/SongCard';
+import LinkPreview from '../components/LinkPreview';
 import * as React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import TextField from '@mui/material/TextField';
 import Stack from '@mui/material/Stack';
+// import { LinkPreview } from '@dhaiwat10/react-link-preview';
+import { getLinkPreview, getPreviewFromContent } from "link-preview-js";
 import { Autocomplete, createFilterOptions } from '@mui/material';
+import Switch from '@mui/material/Switch';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 const config = require('../config.json');
 
@@ -19,6 +25,7 @@ export default function HomePage() {
   const [author, setAuthor] = useState('');
   const [value, setValue] = useState('');
   const [text, setText] = useState('');
+  const label = { inputProps: { 'aria-label': 'Switch demo' } };
 
   const [selectedSongId, setSelectedSongId] = useState(null);
 
@@ -56,15 +63,18 @@ export default function HomePage() {
 
   const handleKeyDown = ({ key, id }) => {
     if (key === 'Enter') {
-      console.log("hi");
-      navigate('/recipe/100')
+      navigate(`/recipe/${text.id}`)
     }
   };
 
   return (
     <Container>
       <Stack spacing={2} sx={{ width: "100%", marginTop: "3%" }}>
+        <FormGroup>
+          <FormControlLabel control={<Switch {...label} defaultUnchecked />} label="Search By Ingredient" />
+        </FormGroup>
         <Autocomplete
+          placeholder={"Recipe Name"}
           onChange={(event, value) => setText(value)}
           onKeyDown={handleKeyDown}
           filterOptions={filterOptions}
@@ -77,12 +87,13 @@ export default function HomePage() {
           }}
           freeSolo
           id="free-solo-2-demo"
+          autoHighlight
           disableClearable
           options={allRecipes}
           renderInput={(params) => (
             <TextField
               {...params}
-              label="Search input"
+              label="Recipe Name"
               InputProps={{
                 ...params.InputProps,
                 type: 'search',
@@ -96,7 +107,7 @@ export default function HomePage() {
       <h2>Check out your RECIPE of the day:
         <Link onClick={() => setSelectedSongId(recipeOfTheDay.id)}>{recipeOfTheDay.name}</Link>
       </h2>
-
+      {/* <LinkPreview /> */}
     </Container>
   );
 };
