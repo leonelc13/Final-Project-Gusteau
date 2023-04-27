@@ -34,6 +34,7 @@ function genLink(name, id) {
 }
 
 function recSteps(steps) {
+  console.log(steps);
   const regex = /'([^']*'|[^']*)'/g;
   const stepStrings = steps.match(regex);
 
@@ -72,7 +73,7 @@ export default function RecipeInfoPage() {
   }, [recipe_id]);
 
   const name = recipe && recipe.length > 0 ? recipe[0].name.trim() : '';
-  const link = genLink(name ,recipe_id);
+  const link = genLink(name, recipe_id);
 
   getLinkPreview(link).then((data) =>
     setData(data)
@@ -83,14 +84,15 @@ export default function RecipeInfoPage() {
       <Stack direction='row' justify='center'>
         <Stack>
           <h1>{recipe && recipe.length > 0 ? recipe[0].name.trim() : ''}</h1>
+          <h2>Contributor: {recipe && recipe.length > 0 ? <a href={`/contributor/${recipe[0].contributor_id}`}>{recipe[0].contributor_id}</a> : 'no contributor'}</h2>
           <p>{recipe && recipe.length > 0 ? recSteps(recipe[0].steps) : 'not working'}</p>
+          <LinkPreview link={link} name={recipe && recipe.length > 0 ? recipe[0].name.trim() : ''} img={linkData.images !== undefined ? linkData.images[0] : "https://geniuskitchen.sndimg.com/fdc-new/img/FDC-Logo.png"} />
           <Carousel>
             {reviews ? reviews.map((item, i) => <Item key={i} item={item} />) : 'no reviews'}
           </Carousel>
           {console.log(linkData)}
         </Stack>
       </Stack>
-      <LinkPreview link={link} name={recipe && recipe.length > 0 ? recipe[0].name.trim() : ''} img={linkData.images !== undefined ? linkData.images[0] : "https://geniuskitchen.sndimg.com/fdc-new/img/FDC-Logo.png"}/>
     </Container>
   );
 }
