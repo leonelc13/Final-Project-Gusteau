@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Container, Paper, Button, Link, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import Carousel from 'react-material-ui-carousel';
+import LinkPreview from '../components/LinkPreview.js';
 // import { LinkPreview } from '@dhaiwat10/react-link-preview';
 import { getLinkPreview, getPreviewFromContent } from "link-preview-js";
 
 import SongCard from '../components/SongCard';
-import { formatDuration, formatReleaseDate } from '../helpers/formatter';
+// import { formatDuration, formatReleaseDate } from '../helpers/formatter';
 const config = require('../config.json');
 
 function genLink(name, id) {
@@ -68,10 +69,15 @@ export default function RecipeInfoPage() {
     fetch(`http://${config.server_host}:${config.server_port}/recipe/${recipe_id}`)
       .then(res => res.json())
       .then(resJson => { setRecipe(resJson) });
-
   }, [recipe_id]);
 
-  console.log(recipe);
+  const name = recipe && recipe.length > 0 ? recipe[0].name.trim() : '';
+  const link = genLink(name ,recipe_id);
+
+  getLinkPreview(link).then((data) =>
+    setData(data)
+  );
+
   return (
     <Container>
       <Stack direction='row' justify='center'>
@@ -81,15 +87,13 @@ export default function RecipeInfoPage() {
           <Carousel>
             {reviews ? reviews.map((item, i) => <Item key={i} item={item} />) : 'no reviews'}
           </Carousel>
+          {console.log(linkData)}
         </Stack>
       </Stack>
+      <LinkPreview link={link} name={recipe && recipe.length > 0 ? recipe[0].name.trim() : ''} img={linkData.images !== undefined ? linkData.images[0] : "https://geniuskitchen.sndimg.com/fdc-new/img/FDC-Logo.png"}/>
     </Container>
   );
 }
-
-// getLinkPreview("https://www.food.com/recipe/peanut-butter-and-jelly-panini-90257").then((data) =>
-//   setData(data)
-// );
 
 function Item(props) {
   return (

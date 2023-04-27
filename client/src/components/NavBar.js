@@ -15,7 +15,7 @@ import './navbar.css';
 const NavText = ({ href, text, icon }) => {
   const [hovered, setHovered] = useState(false);
   return (
-    <Typography
+    <Typography component={"span"}
       style={{
         fontFamily: 'Helvetica Neue',
         fontWeight: 600,

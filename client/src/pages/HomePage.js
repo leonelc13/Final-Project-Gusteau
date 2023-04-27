@@ -107,7 +107,6 @@ export default function HomePage() {
       <h2>Check out your RECIPE of the day:
         <Link onClick={() => setSelectedSongId(recipeOfTheDay.id)}>{recipeOfTheDay.name}</Link>
       </h2>
-      {/* <LinkPreview /> */}
     </Container>
   );
 };
