@@ -30,8 +30,8 @@ export default function HomePage() {
   const [ingredientList, setIngredientList] = useState(false);
   const [selectedRecipes, setSelectedRecipes] = useState([]);
   const [selectedSongId, setSelectedSongId] = useState(null);
-  const [selectedValue, setSelectedValue] = useState(null)
   const [foodTags, setFoodTags] = useState([]);
+  const [clear, setClear] = useState(false);
 
   const OPTIONS_LIMIT = 100;
   const defaultFilterOptions = createFilterOptions();
@@ -70,11 +70,13 @@ export default function HomePage() {
     if (event.key === "Enter") {
       // Add the selected value as a chip
       // Here you can implement your search logic
-      setSelectedValue()
-      console.log("Searching for: ", selectedValue);
-      setFoodTags([selectedValue, ...foodTags]);
+      setClear(!clear);
+      if (text.label) {
+        setFoodTags([...foodTags, text.label]);
+      }
     }
   };
+
 
   return !checked ? (
     <Container>
@@ -82,7 +84,7 @@ export default function HomePage() {
         <FormGroup>
           <FormControlLabel control={<Switch checked={checked}
             onChange={handleSwitchChange}
-            inputProps={{ 'aria-label': 'controlled' }} defaultUnchecked />} label="Search By Ingredient" />
+            inputProps={{ 'aria-label': 'controlled' }} />} label="Search By Ingredient" />
         </FormGroup>
         <Autocomplete
           onChange={(event, value) => setText(value)}
@@ -98,7 +100,6 @@ export default function HomePage() {
           freeSolo
           id="free-solo-2-demo"
           autoHighlight
-          disableClearable
           options={allRecipes}
           renderInput={(params) => (
             <TextField
@@ -123,11 +124,12 @@ export default function HomePage() {
         <FormGroup>
           <FormControlLabel control={<Switch checked={checked}
             onChange={handleSwitchChange}
-            inputProps={{ 'aria-label': 'controlled' }} defaultUnchecked />} label="Search By Ingredient" />
+            inputProps={{ 'aria-label': 'controlled' }} />} label="Search By Ingredient" />
         </FormGroup>
         <Autocomplete
-          // onKeyPress={handleKeyPress}
+          key={clear}
           onChange={(event, value) => setText(value)}
+          value={value}
           onKeyDown={handleKeyPress}
           filterOptions={filterOptions}
           renderOption={(props, option) => {
@@ -140,7 +142,6 @@ export default function HomePage() {
           freeSolo
           id="free-solo-2-demo"
           autoHighlight
-          disableClearable
           options={allIngredients}
           renderInput={(params) => (
             <TextField
@@ -153,9 +154,15 @@ export default function HomePage() {
             />
           )}
         />
-        {foodTags.length > 0 && (
-          <Chip label={foodTags[0]} onDelete={() => setSelectedValue(null)} />
-        )}
+        {foodTags.map((tag, idx) => {
+          return <Chip label={tag} onDelete={() => {
+            const idx = foodTags.indexOf(tag);
+            if (idx !== -1) {
+              foodTags.splice(idx, 1);
+              setFoodTags([...foodTags]);
+            }
+          }} />
+        })}
       </Stack>
       <h2>Check out your RECIPE of the day:
         <Link onClick={() => setSelectedSongId(recipeOfTheDay.id)}>{recipeOfTheDay.name}</Link>

@@ -9,6 +9,7 @@ import AlbumsPage from './pages/AlbumsPage';
 import SongsPage from './pages/SongsPage';
 import RecipeInfoPage from './pages/RecipeInfoPage'
 import ContributorPage from './pages/ContributorPage'
+import RandomPage from './pages/RandomPage'
 
 
 // createTheme enables you to customize the look and feel of your app past the default
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/recipe/:recipe_id" element={<RecipeInfoPage />} />
           <Route path="/songs" element={<SongsPage />} />
           <Route path="/contributor/:contributor_id" element={<ContributorPage />} />
+          <Route path="/random" element={<RandomPage />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
