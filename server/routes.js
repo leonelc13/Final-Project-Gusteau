@@ -162,7 +162,7 @@ const contributor = async function (req, res) {
     WHERE contributor_id IN
     (SELECT contributor_id
     FROM Recipes
-    WHERE id = contributor_id);`,
+    WHERE contributor_id = '${cid}');`,
       (err, data) => {
         if (err || data.length === 0) {
           console.log(err);
@@ -178,7 +178,7 @@ const contributor = async function (req, res) {
     WHERE contributor_id IN
     (SELECT contributor_id
     FROM Recipes
-    WHERE id = ${cid})
+    WHERE contributor_id = '${cid}')
     LIMIT ${pageSize};`
     if (page > 1) {
       console.log((page - 1) * pageSize);
@@ -759,6 +759,22 @@ const recipe_reviews = async function (req, res) {
   });
 }
 
+// Route 16: GET /ingredients
+const ingredients = async function (req, res) {
+  let queryString = `
+    SELECT Ingredient_name as label, Ingredient_id as id
+    FROM Ingredients
+  `;
+  connection.query(queryString, (err, data) => {
+    if (err || data.length === 0) {
+      console.log(err);
+      res.json([]);
+    } else {
+      res.json(data);
+    }
+  });
+}
+
 
 module.exports = {
   all_ingredients,
@@ -775,5 +791,6 @@ module.exports = {
   recipe,
   rec_price,
   recipes,
-  recipe_reviews
+  recipe_reviews,
+  ingredients
 }

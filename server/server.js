@@ -26,6 +26,7 @@ app.get('/recipe/:recipe_id', routes.recipe);
 app.get('/price/:recipe_id', routes.rec_price);
 app.get('/recipe_reviews/:recipe_id', routes.recipe_reviews);
 app.get('/recipes', routes.recipes);
+app.get('/ingredients', routes.ingredients)
 
 
 app.listen(config.server_port, () => {
