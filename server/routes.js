@@ -12,7 +12,7 @@ const connection = mysql.createConnection({
 });
 connection.connect((err) => err && console.log(err));
 
-// Route 1: GET /all_ingredients/:<ingredients>?page=<>&page_size=<>&max_prep_time=<>
+// Route 1: GET /all_ingredients/:<ingredients>?page=<>&page_size=<>&max_prep_time=<> -- DONE
 const all_ingredients = async function (req, res) {
   const ingredient_list = req.params.ingredients.split(' ');
   const max_prep_time = req.query.max_prep_time ? parseInt(req.query.max_prep_time) : 200000;
@@ -133,7 +133,6 @@ const all_ingredients = async function (req, res) {
           LIMIT ${pageSize} `
     }
     if (page > 1) {
-      console.log((page - 1) * pageSize);
       query += `OFFSET ${(page - 1) * pageSize}`;
     }
 
@@ -149,10 +148,9 @@ const all_ingredients = async function (req, res) {
 }
 
 
-// Route 2: GET /contributor/:contributor_id
+// Route 2: GET /contributor/:contributor_id -- DONE
 const contributor = async function (req, res) {
   let cid = req.params.contributor_id;
-  console.log(cid);
   const page = req.query.page;
   const pageSize = req.query.page_size ?? 10;
   if (!page) {
@@ -181,7 +179,6 @@ const contributor = async function (req, res) {
     WHERE contributor_id = '${cid}')
     LIMIT ${pageSize};`
     if (page > 1) {
-      console.log((page - 1) * pageSize);
       queryString += `OFFSET ${(page - 1) * pageSize}`;
     }
     connection.query(queryString, (err, data) => {
@@ -244,7 +241,6 @@ const prep_time = async function (req, res) {
       ORDER BY avg_rating DESC;
       LIMIT ${pageSize}`;
     if (page > 1) {
-      console.log((page - 1) * pageSize);
       queryString += `OFFSET ${(page - 1) * pageSize}`;
     }
     connection.query(queryString, (err, data) => {
@@ -308,7 +304,6 @@ const min_rating = async function (req, res) {
     `;
 
     if (page > 1) {
-      console.log((page - 1) * pageSize);
       queryString += `OFFSET ${(page - 1) * pageSize}`;
     }
     connection.query(queryString, (err, data) => {
@@ -348,53 +343,6 @@ const similar_recipes = async function (req, res) {
     `;
 
     if (page > 1) {
-      console.log((page - 1) * pageSize);
-      queryString += `OFFSET ${(page - 1) * pageSize}`;
-    }
-    connection.query(queryString, (err, data) => {
-      if (err || data.length === 0) {
-        console.log(err);
-        res.json({});
-      } else {
-        res.json(data);
-      }
-    });
-  }
-}
-
-// Route 6: GET /recipe_cost/:recipe_id
-const recipe_price = async function (req, res) {
-  const page = req.query.page;
-  const pageSize = req.query.page_size ?? 10;
-  let rid = req.params.recipe_id;
-
-  if (!page) {
-    connection.query(`
-    Select I.Ingredient_name, IP.country, IP.unit, IP.price
-    From Recipe_Ingredient ri
-        JOIN Prices IP on ri.Ingredient_id = IP.Ingredient_id
-        JOIN Ingredients I on I.Ingredient_id = ri.Ingredient_id
-    WHERE ri.Recipe_id = '${rid}'
-    `, (err, data) => {
-      if (err || data.length === 0) {
-        console.log(err);
-        res.json({});
-      } else {
-        res.json(data);
-      }
-    });
-  } else {
-    let queryString = `
-    Select I.Ingredient_name, IP.country, IP.unit, IP.price
-    From Recipe_Ingredient ri
-        JOIN Prices IP on ri.Ingredient_id = IP.Ingredient_id
-        JOIN Ingredients I on I.Ingredient_id = ri.Ingredient_id
-    WHERE ri.Recipe_id = '${rid}'
-      LIMIT ${pageSize}
-    `;
-
-    if (page > 1) {
-      console.log((page - 1) * pageSize);
       queryString += `OFFSET ${(page - 1) * pageSize}`;
     }
     connection.query(queryString, (err, data) => {
@@ -409,10 +357,10 @@ const recipe_price = async function (req, res) {
 }
 
 
-
-// Route 7: GET /some_ingredients/:<ingredients>?max_prep_time=<>
+// Route 7: GET /some_ingredients/:<ingredients>?max_prep_time=<> -- DONE
 const some_ingredients = async function (req, res) {
-  const ingredient_list = req.params.ingredients.split(' ');
+  //TODO: fix so splitting by ampersand works with query parameters like max_prep_time
+  const ingredient_list = req.params.ingredients.split('&');
   const max_prep_time = req.query.max_prep_time ? parseInt(req.query.max_prep_time) : 200000;
 
   const page = req.query.page;
@@ -502,7 +450,6 @@ const some_ingredients = async function (req, res) {
     }
 
     if (page > 1) {
-      console.log((page - 1) * pageSize);
       query += `OFFSET ${(page - 1) * pageSize}`;
     }
 
@@ -517,7 +464,7 @@ const some_ingredients = async function (req, res) {
   }
 };
 
-// Route 8: GET /worst_recipes
+// Route 8: GET /worst_recipes -- DONE
 const worst_recipes = async function (req, res) {
   const page = req.query.page;
   const pageSize = req.query.page_size ?? 10;
@@ -528,8 +475,8 @@ const worst_recipes = async function (req, res) {
       FROM Recipes r
       JOIN Reviews rev ON r.id = rev.recipe_id
       GROUP BY r.id
-      HAVING COUNT(rev.recipe_id) > 3
-      ORDER BY num_reviews DESC, avg_rating ASC
+      HAVING COUNT(rev.recipe_id) > 3 AND avg_rating < 3
+      ORDER BY avg_rating ASC, num_reviews DESC
     `, (err, data) => {
       if (err || data.length === 0) {
         console.log(err);
@@ -544,13 +491,12 @@ const worst_recipes = async function (req, res) {
       FROM Recipes r
       JOIN Reviews rev ON r.id = rev.recipe_id
       GROUP BY r.id
-      HAVING COUNT(rev.recipe_id) > 3
-      ORDER BY num_reviews DESC, avg_rating ASC
+      HAVING COUNT(rev.recipe_id) > 3 AND avg_rating < 3
+      ORDER BY avg_rating ASC, num_reviews DESC
       LIMIT ${pageSize}
     `;
 
     if (page > 1) {
-      console.log((page - 1) * pageSize);
       queryString += `OFFSET ${(page - 1) * pageSize}`;
     }
     connection.query(queryString, (err, data) => {
@@ -602,7 +548,6 @@ const top_recipes_contributor = async function (req, res) {
     `;
 
     if (page > 1) {
-      console.log((page - 1) * pageSize);
       queryString += `OFFSET ${(page - 1) * pageSize}`;
     }
     connection.query(queryString, (err, data) => {
@@ -621,7 +566,7 @@ const top_recipes_contributor = async function (req, res) {
   }
 }
 
-// Route 10: GET /top_recipes
+// Route 10: GET /top_recipes -- DONE
 const top_recipes = async function (req, res) {
   const page = req.query.page;
   const pageSize = req.query.page_size ?? 10;
@@ -652,7 +597,6 @@ const top_recipes = async function (req, res) {
     `;
 
     if (page > 1) {
-      console.log((page - 1) * pageSize);
       queryString += `OFFSET ${(page - 1) * pageSize}`;
     }
     connection.query(queryString, (err, data) => {
@@ -666,7 +610,7 @@ const top_recipes = async function (req, res) {
   }
 }
 
-// Route 11: GET /random
+// Route 11: GET /random -- DONE
 const random = async function (req, res) {
   connection.query(`
   SELECT R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, AVG(Rv.rating) AS avg_rating
@@ -685,7 +629,7 @@ const random = async function (req, res) {
   });
 }
 
-// Route 12: GET /recipe/:recipe_id
+// Route 12: GET /recipe/:recipe_id -- DONE
 const recipe = async function (req, res) {
   let rid = req.params.recipe_id;
   let queryString = `
@@ -703,7 +647,7 @@ const recipe = async function (req, res) {
   });
 }
 
-//Route 13: GET /price/:recipe_id
+//Route 13: GET /price/:recipe_id -- DONE
 const rec_price = async function (req, res) {
   let rid = req.params.recipe_id;
   let queryString = `
@@ -712,7 +656,7 @@ const rec_price = async function (req, res) {
     FROM Recipes rec JOIN Recipe_Ingredient ri on rec.id = ri.Recipe_id
     WHERE rec.id = '${rid}'
   )
-  SELECT jri.Ingredient_id, p.Ingredient_name, p.unit, AVG(p.price) AS avg_price
+  SELECT jri.Ingredient_id, p.Ingredient_name, p.unit, p.country, AVG(p.price) AS avg_price
   FROM joined_recipe_and_ingredients jri JOIN Prices p ON jri.Ingredient_id = p.Ingredient_id
   GROUP BY Ingredient_id, Ingredient_name, p.unit
   `;
@@ -726,7 +670,7 @@ const rec_price = async function (req, res) {
   });
 }
 
-// Route 14: GET /recipes
+// Route 14: GET /recipes -- DONE
 const recipes = async function (req, res) {
   connection.query(`
   SELECT DISTINCT name as label, id as id
@@ -741,7 +685,7 @@ const recipes = async function (req, res) {
   });
 }
 
-// Route 15: GET /recipe_reviews/:recipe_id
+// Route 15: GET /recipe_reviews/:recipe_id -- DONE
 const recipe_reviews = async function (req, res) {
   let rid = req.params.recipe_id;
   let queryString = `
@@ -759,7 +703,7 @@ const recipe_reviews = async function (req, res) {
   });
 }
 
-// Route 16: GET /ingredients
+// Route 16: GET /ingredients -- DONE
 const ingredients = async function (req, res) {
   let queryString = `
     SELECT Ingredient_name as label, Ingredient_id as id
@@ -782,7 +726,6 @@ module.exports = {
   prep_time,
   min_rating,
   similar_recipes,
-  recipe_price,
   some_ingredients,
   worst_recipes,
   top_recipes_contributor,
