@@ -52,7 +52,7 @@ export default function HomePage() {
   const [maxPrepTime, setMaxPrepTime] = useState(1000);
   const [minRating, setMinRating] = useState(1000);
 
-  const [disableNext, setDisableNext] = useState(false);
+  const [disableNext, setDisableNext] = useState(true);
 
 
   const handleDrawerOpen = () => {
@@ -68,10 +68,12 @@ export default function HomePage() {
 
   const handlePrev = () => {
     setIngrPage(ingrPage => ingrPage - 1);
+    setDisableNext(false);
   };
 
   const handleNext = () => {
     setIngrPage(ingrPage => ingrPage + 1);
+    checkNext();
   };
 
   const OPTIONS_LIMIT = 100;
@@ -125,9 +127,16 @@ export default function HomePage() {
   const checkNext = () => {
     if (matchingRecipesOne) {
       console.log(matchingRecipesOne)
-      if (matchingRecipesOne.length - (ingrPage * 10) < 10) {
-        console.log(matchingRecipesOne.length);
-        console.log(ingrPage * 10);
+      if (matchingRecipesOne.length === 10) {
+        console.log("hi");
+        fetch(`http://${config.server_host}:${config.server_port}/some_ingredients/${foodTags.join('&')}?page=${ingrPage+1}`)
+          .then(res => res.json())
+          .then(resJson => {
+            if (resJson.length > 0) {
+              setDisableNext(false);
+            }
+          }).catch(error => console.error('Error fetching data:', error));
+      }else{
         setDisableNext(true);
       }
     }
