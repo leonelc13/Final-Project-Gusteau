@@ -5,8 +5,6 @@ import Carousel from 'react-material-ui-carousel';
 import LinkPreview from '../components/LinkPreview.js';
 // import { LinkPreview } from '@dhaiwat10/react-link-preview';
 import { getLinkPreview, getPreviewFromContent } from "link-preview-js";
-
-import SongCard from '../components/SongCard';
 // import { formatDuration, formatReleaseDate } from '../helpers/formatter';
 const config = require('../config.json');
 
@@ -61,6 +59,7 @@ export default function RecipeInfoPage() {
   const [reviews, setReviews] = useState([]); // default should actually just be [], but empty object element added to avoid error in template code
   const [recipe, setRecipe] = useState({});
   const [linkData, setData] = useState({});
+  const [priceData, setPriceData] = useState([]);
 
   useEffect(() => {
     fetch(`http://${config.server_host}:${config.server_port}/recipe_reviews/${recipe_id}`)
@@ -70,6 +69,10 @@ export default function RecipeInfoPage() {
     fetch(`http://${config.server_host}:${config.server_port}/recipe/${recipe_id}`)
       .then(res => res.json())
       .then(resJson => { setRecipe(resJson) });
+
+    fetch(`http://${config.server_host}:${config.server_port}/price/${recipe_id}`)
+      .then(res => res.json())
+      .then(resJson => { setPriceData(resJson) });
   }, [recipe_id]);
 
   const name = recipe && recipe.length > 0 ? recipe[0].name.trim() : '';
@@ -84,15 +87,36 @@ export default function RecipeInfoPage() {
       <Stack direction='row' justify='center'>
         <Stack>
           <h1>{recipe && recipe.length > 0 ? recipe[0].name.trim() : ''}</h1>
-          <h2>Contributor: {recipe && recipe.length > 0 ? <a href={`/contributor/${recipe[0].contributor_id}`}>{recipe[0].contributor_id}</a> : 'no contributor'}</h2>
+          <h3>Contributor: {recipe && recipe.length > 0 ? <a href={`/contributor/${recipe[0].contributor_id}`}>{recipe[0].contributor_id}</a> : 'no contributor'}</h3>
           <p>{recipe && recipe.length > 0 ? recSteps(recipe[0].steps) : 'not working'}</p>
           <LinkPreview link={link} name={recipe && recipe.length > 0 ? recipe[0].name.trim() : ''} img={linkData.images !== undefined ? linkData.images[0] : "https://geniuskitchen.sndimg.com/fdc-new/img/FDC-Logo.png"} />
           <Carousel>
             {reviews ? reviews.map((item, i) => <Item key={i} item={item} />) : 'no reviews'}
           </Carousel>
-          {console.log(linkData)}
         </Stack>
       </Stack>
+      <h3>Prices</h3>
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell key='Ingredient'><b>Ingredient</b></TableCell>
+              <TableCell key='Country'><b>Country</b></TableCell>
+              <TableCell key='Price'><b>Price</b></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {
+              priceData.map(row =>
+                <TableRow key={row.Ingredient_id}>
+                  <TableCell key='Ingredient'>{row.Ingredient_name}</TableCell>
+                  <TableCell key='Country'>{row.country}</TableCell>
+                  <TableCell key='Price'>{row.price && row.unit ? `${row.price} / ${row.unit}` : `$0.50/g`}</TableCell>
+                </TableRow>)
+            }
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Container>
   );
 }

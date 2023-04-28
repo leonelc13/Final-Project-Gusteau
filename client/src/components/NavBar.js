@@ -38,7 +38,7 @@ const NavText = ({ href, text, icon }) => {
 
       >
         <div className={`hover-box ${hovered ? 'active' : ''}`}></div>
-        <FontAwesomeIcon icon={icon} className={hovered ? 'bounce' : ''} style={{color: "#ffffff", marginRight: '10px'}} />
+        <FontAwesomeIcon icon={icon} className={hovered ? 'bounce' : ''} style={{ color: "#ffffff", marginRight: '10px' }} />
         {text}
 
       </NavLink>
@@ -54,8 +54,8 @@ export default function NavBar() {
     <AppBar position='static' className='justify-content-center' style={{ backgroundColor: '#F2A89F' }} elevation={0}>
       <Container maxWidth='s'>
         <Toolbar style={{ display: 'flex', justifyContent: 'space-evenly' }} disableGutters>
-          <NavText href='/' text='GUSTEAU' icon={faUtensils}/>
-          <NavText href='/albums' text='RECIPE' icon={faMagnifyingGlass} />
+          <NavText href='/' text='GUSTEAU' icon={faUtensils} />
+          <NavText href='/recipe/stats' text='RECIPE STATS' icon={faMagnifyingGlass} />
           <NavText href='/songs' text='REVIEWS' icon={faStar} />
           <NavText href='/random' text='ROTD' icon={faFire} />
         </Toolbar>

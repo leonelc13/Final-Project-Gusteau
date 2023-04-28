@@ -12,7 +12,7 @@ export default function ContributorPage() {
     const [contributorFoods, setContributorFoods] = useState([]);
 
     useEffect(() => {
-        fetch(`http://${config.server_host}:${config.server_port}/contributor/${contributor_id}`)
+        fetch(`http://${config.server_host}:${config.server_port}/top_recipes/${contributor_id}`)
             .then(res => res.json())
             .then(resJson => { setContributorFoods(resJson); console.log(contributor_id) });
     }, [contributor_id]);

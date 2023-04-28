@@ -34,7 +34,6 @@ function genLink(name, id) {
 }
 
 function recSteps(steps) {
-    console.log(steps);
     const regex = /'([^']*'|[^']*)'/g;
     const stepStrings = steps.match(regex);
 
@@ -72,7 +71,6 @@ export default function RandomPage() {
                 .then(resJson => { setReviews(resJson) });
         }
     }, []);
-    console.log(recipe)
 
     const name = recipe && recipe.length > 0 ? recipe[0].name.trim() : '';
     const link = genLink(name, recipe.id);
@@ -92,7 +90,6 @@ export default function RandomPage() {
                     <Carousel>
                         {reviews ? reviews.map((item, i) => <Item key={i} item={item} />) : 'no reviews'}
                     </Carousel>
-                    {console.log(linkData)}
                 </Stack>
             </Stack>
         </Container>
