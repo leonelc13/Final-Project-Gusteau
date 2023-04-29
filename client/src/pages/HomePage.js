@@ -231,28 +231,28 @@ export default function HomePage() {
             <Container>
               <Stack sx={{ width: "30%" }}>
                 <Button sx={{}} onClick={handleDrawerOpen}>Options</Button>
-                <Drawer
-                  anchor="right"
-                  open={drawerOpen}
-                  onClose={handleDrawerClose}
-                >
-                  <Box sx={{ width: 300, paddingLeft: '8%', paddingRight: '8%', justifyContent: 'center' }}>
-                    <h4 className="drawerTitle">MORE FILTERS</h4>
-                    <FormGroup sx={{ width: 300 }}>
-                      <FormControlLabel className="toggle" control={<Switch checked={matchAll}
-                        sx={{ "&.MuiSwitch-root .MuiSwitch-switchBase": { color: "rgb(242, 168, 159)" }, "&.MuiSwitch-root .Mui-checked": { color: "rgb(242, 168, 159)" } }}
-                        onChange={() => setMatchAll(!matchAll)}
-                        inputProps={{ 'aria-label': 'controlled' }} />} label="Match all ingredients" />
-                      <TextField id="standard-basic" value={maxPrepTime === 1000 ? '' : maxPrepTime} onChange={(event) => { setMaxPrepTime(event.target.value); setIngrPage(1) }} label="Max Prep Time" variant="standard" />
-                    </FormGroup>
-                    <Button type="submit" variant="contained" onClick={handleSubmit} className="applyButton" sx={{ ":focus": { border: 'rgb(242, 168, 159)', outline: 'none', borderColor: 'rgb(242, 168, 159)' }, ":hover": { bgcolor: 'rgb(242, 168, 159)' }, backgroundColor: "rgb(242, 168, 159)", position: 'absolute', right: '5%', bottom: 20 }}>Apply</Button>
-                  </Box>
-                </Drawer>
                 {/* Rest of the code */}
               </Stack>
             </Container>
           </Grid>
         </Grid>
+        <Drawer
+                  anchor="right"
+                  open={drawerOpen}
+                  onClose={handleDrawerClose}
+                >
+                  <Box sx={{ width: 300, justifyContent: 'center' }}>
+                    <h4 className="drawerTitle">MORE FILTERS</h4>
+                    <FormGroup sx={{ width: 300 }}>
+                      <FormControlLabel sx={{ width: '100%' }} className="toggle" control={<Switch checked={matchAll}
+                        sx={{ "&.MuiSwitch-root .MuiSwitch-switchBase": { color: "rgb(242, 168, 159)" }, "&.MuiSwitch-root .Mui-checked": { color: "rgb(242, 168, 159)" }}}
+                        onChange={() => setMatchAll(!matchAll)}
+                        inputProps={{ 'aria-label': 'controlled' }} />} label="Match all ingredients" />
+                      <TextField sx={{marginLeft: 3, marginRight: 3}}className="maxPrep" id="standard-basic" value={maxPrepTime === 1000 ? '' : maxPrepTime} onChange={(event) => { setMaxPrepTime(event.target.value); setIngrPage(1) }} label="Max Prep Time" variant="standard" />
+                    </FormGroup>
+                    <Button type="submit" variant="contained" onClick={handleSubmit} className="applyButton" sx={{ ":focus": { border: 'rgb(242, 168, 159)', outline: 'none', borderColor: 'rgb(242, 168, 159)' }, ":hover": { bgcolor: 'rgb(242, 168, 159)' }, backgroundColor: "rgb(242, 168, 159)", position: 'absolute', right: '5%', bottom: 20 }}>Apply</Button>
+                  </Box>
+                </Drawer>
         <Autocomplete
           key={clear}
           onChange={(event, value) => { setText(value); console.log("VALUE", value); }}
