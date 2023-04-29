@@ -69,7 +69,7 @@ const all_ingredients = async function (req, res) {
           LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
           WHERE r1.num_ingredients >= ${ingredient_list.length} AND r1.preparation_time <= ${max_prep_time} 
           GROUP BY r1.id
-          ORDER BY AVG(r2.rating), COUNT(r2.rating)`
+          ORDER BY AVG(r2.rating), COUNT(r2.rating) `
     }
 
     connection.query(query, (err, data) => {
@@ -95,7 +95,8 @@ const all_ingredients = async function (req, res) {
           JOIN Recipes r1 ON c.Recipe_id = r1.id
           LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
           GROUP BY r1.id
-          ORDER BY AVG(r2.rating), COUNT(r2.rating)`;
+          ORDER BY AVG(r2.rating), COUNT(r2.rating) 
+          LIMIT ${pageSize} `;
 
     } else if (ingredient_list.length > 1) {
       query += "WITH ";
@@ -359,7 +360,7 @@ const similar_recipes = async function (req, res) {
 
 // Route 7: GET /some_ingredients/:<ingredients>?max_prep_time=<> -- DONE
 const some_ingredients = async function (req, res) {
-  //TODO: fix so splitting by ampersand works with query parameters like max_prep_time
+  console.log(req.url);
   const ingredient_list = req.params.ingredients.split('&');
   const max_prep_time = req.query.max_prep_time ? parseInt(req.query.max_prep_time) : 200000;
 

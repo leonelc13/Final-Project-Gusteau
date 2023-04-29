@@ -6,7 +6,6 @@ import LinkPreview from '../components/LinkPreview.js';
 // import { LinkPreview } from '@dhaiwat10/react-link-preview';
 import { getLinkPreview, getPreviewFromContent } from "link-preview-js";
 
-import SongCard from '../components/SongCard';
 // import { formatDuration, formatReleaseDate } from '../helpers/formatter';
 const config = require('../config.json');
 

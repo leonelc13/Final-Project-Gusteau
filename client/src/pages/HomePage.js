@@ -48,12 +48,13 @@ export default function HomePage() {
   const [foodTags, setFoodTags] = useState([]);
   const [clear, setClear] = useState(false);
   const [ingrPage, setIngrPage] = useState(1);
+  const [page, setPage] = useState(1); // 1 indexed
+  // const [pageSize, setPageSize] = useState(defaultPageSize ?? 10);
 
+  // text field for max prep time
   const [maxPrepTime, setMaxPrepTime] = useState(1000);
-  const [minRating, setMinRating] = useState(1000);
 
   const [disableNext, setDisableNext] = useState(true);
-
 
   const handleDrawerOpen = () => {
     setDrawerOpen(true);
@@ -63,7 +64,9 @@ export default function HomePage() {
     setDrawerOpen(false);
   };
 
-
+  const handleSubmit = (e) => {
+    handleDrawerClose();
+  }
   const flexFormat = { display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-evenly' };
 
   const handlePrev = () => {
@@ -107,39 +110,56 @@ export default function HomePage() {
       .then(res => res.json())
       .then(resJson => { setAllIngredients(resJson) });
 
-    fetch(`http://${config.server_host}:${config.server_port}/some_ingredients/${foodTags.join('&')}?page=${ingrPage}`)
+    fetch(`http://${config.server_host}:${config.server_port}/some_ingredients/${foodTags.join('&')}?page=${ingrPage}&max_prep_time=${maxPrepTime}`)
       .then(res => res.json())
       .then(resJson => { setMatchingRecipesOne(resJson) });
 
-    fetch(`http://${config.server_host}:${config.server_port}/all_ingredients/${foodTags.join('&')}?page=${ingrPage}`)
+    fetch(`http://${config.server_host}:${config.server_port}/all_ingredients/${foodTags.join('&')}?page=${ingrPage}&max_prep_time=${maxPrepTime}`)
       .then(res => res.json())
       .then(resJson => { setMatchingRecipesAll(resJson) });
 
     fetch(`http://${config.server_host}:${config.server_port}/recipes`)
       .then(res => res.json())
       .then(resJson => { setAllRecipes(resJson) });
-  }, [foodTags, ingrPage]);
+  }, [foodTags, ingrPage, maxPrepTime]);
 
   useEffect(() => {
-    checkNext()
-  }, [ingrPage, matchingRecipesOne])
+    checkNext();
+  }, [ingrPage, matchingRecipesOne, matchingRecipesAll])
 
   const checkNext = () => {
-    if (matchingRecipesOne) {
-      console.log(matchingRecipesOne)
-      if (matchingRecipesOne.length === 10) {
-        console.log("hi");
-        fetch(`http://${config.server_host}:${config.server_port}/some_ingredients/${foodTags.join('&')}?page=${ingrPage+1}`)
-          .then(res => res.json())
-          .then(resJson => {
-            if (resJson.length > 0) {
-              setDisableNext(false);
-            }
-          }).catch(error => console.error('Error fetching data:', error));
-      }else{
-        setDisableNext(true);
+    if (!matchAll) {
+      if (matchingRecipesOne) {
+        console.log(matchingRecipesOne)
+        if (matchingRecipesOne.length === 10) {
+          fetch(`http://${config.server_host}:${config.server_port}/some_ingredients/${foodTags.join('&')}?page=${ingrPage + 1}`)
+            .then(res => res.json())
+            .then(resJson => {
+              if (resJson.length > 0) {
+                setDisableNext(false);
+              }
+            }).catch(error => console.error('Error fetching data:', error));
+        } else {
+          setDisableNext(true);
+        }
+      }
+    } else {
+      if (matchingRecipesAll) {
+        console.log(matchingRecipesAll)
+        if (matchingRecipesOne.length === 10) {
+          fetch(`http://${config.server_host}:${config.server_port}/all_ingredients/${foodTags.join('&')}?page=${ingrPage + 1}`)
+            .then(res => res.json())
+            .then(resJson => {
+              if (resJson.length > 0) {
+                setDisableNext(false);
+              }
+            }).catch(error => console.error('Error fetching data:', error));
+        } else {
+          setDisableNext(true);
+        }
       }
     }
+
   }
 
   const handleKeyDown = ({ key, id }) => {
@@ -147,10 +167,6 @@ export default function HomePage() {
       navigate(`/recipe/${text.id}`)
     }
   };
-
-  // const handleSwitchChange = () => {
-  //   setChecked(!checked);
-  // };
 
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
@@ -255,6 +271,7 @@ export default function HomePage() {
             </div>)
           })}
         </Stack>
+
         <Container>
           <Stack spacing={2} sx={{ width: "100%", marginTop: "3%" }}>
             <Button onClick={handleDrawerOpen}>Options</Button>
@@ -263,12 +280,15 @@ export default function HomePage() {
               open={drawerOpen}
               onClose={handleDrawerClose}
             >
-              <Box sx={{ width: 250 }} onClick={handleDrawerClose}>
+              <Box sx={{ width: 250, paddingLeft: '8%', paddingRight: '8%' }}>
+                <h4>More Filters</h4>
                 <FormGroup>
                   <FormControlLabel control={<Switch checked={matchAll}
                     onChange={() => setMatchAll(!matchAll)}
-                    inputProps={{ 'aria-label': 'controlled' }} />} label="Search By Ingredient" />
+                    inputProps={{ 'aria-label': 'controlled' }} />} label="Match all ingredients" />
+                  <TextField id="standard-basic" value={maxPrepTime === 1000 ? '' : maxPrepTime} onChange={(event) => { setMaxPrepTime(event.target.value); setIngrPage(1) }} label="Max Prep Time" variant="standard" />
                 </FormGroup>
+                <Button type="submit" variant="contained" onClick={handleSubmit} className="applyButton" sx={{ ":focus": { border: 'rgb(242, 168, 159)', outline: 'none', borderColor: 'rgb(242, 168, 159)' }, ":hover": { bgcolor: 'rgb(242, 168, 159)' }, backgroundColor: "rgb(242, 168, 159)", position: 'absolute', right: '5%', bottom: 20 }}>Apply</Button>
               </Box>
             </Drawer>
             {/* Rest of the code */}
@@ -276,15 +296,11 @@ export default function HomePage() {
         </Container>
 
       </Stack>
-      {/* <Button variant="outlined" className="submit" onClick={() => {
-        console.log(matchingRecipesOne)
-        setShowRecipes(true);
-      }}>Submit</Button> */}
 
       <Container>
         <Box mx="auto">
           <ol>
-            {matchingRecipesOne ? (
+            {!matchAll ? (matchingRecipesOne ? (
               matchingRecipesOne.map((recipe) => (
                 <a href={`/recipe/${recipe.id}`} key={recipe.id} style={{ textDecoration: 'none' }}>
                   <li style={{ backgroundColor: '#f5f5f5', borderRadius: '10px', padding: '10px', margin: '10px', boxShadow: '2px 2px 5px rgba(0,0,0,0.2)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
@@ -299,19 +315,38 @@ export default function HomePage() {
               ))
             ) : (
               <p>Loading...</p>
-            )}
+            )) : (matchingRecipesAll ? (
+              matchingRecipesAll.map((recipe) => (
+                <a href={`/recipe/${recipe.id}`} key={recipe.id} style={{ textDecoration: 'none' }}>
+                  <li style={{ backgroundColor: '#f5f5f5', borderRadius: '10px', padding: '10px', margin: '10px', boxShadow: '2px 2px 5px rgba(0,0,0,0.2)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <Typography variant="h5" component="h2" style={{ marginBottom: '5px' }}>
+                      {recipe.name}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary" component="p">
+                      User ID: {recipe.contributor_id} | Prep Time: {recipe.preparation_time} min | Calories: {recipe.calories} | Num Ingredients: {recipe.num_ingredients}
+                    </Typography>
+                  </li>
+                </a>
+              ))
+            ) : (
+              <p>Loading...</p>
+            ))}
+
           </ol>
         </Box>
       </Container>
-      {foodTags.length > 0 ?
-        <Container>
-          <div style={flexFormat}>
-            <button onClick={handlePrev} disabled={ingrPage === 1}>Previous</button>
-            <button onClick={handleNext} disabled={disableNext}>Next</button>
-          </div>
-        </Container>
+      {
+        foodTags.length > 0 ?
+          <Container>
+            <div style={flexFormat}>
+              <button onClick={handlePrev} disabled={ingrPage === 1}>Previous</button>
+              <button onClick={handleNext} disabled={disableNext}>Next</button>
+            </div>
+          </Container>
 
-        : <></>}
+          : <></>
+      }
 
-    </Container>)} </Container>;
+    </Container >)
+  } </Container >;
 };

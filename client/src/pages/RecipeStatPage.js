@@ -95,7 +95,7 @@ export default function RecipeStatPage() {
           <TableBody>
             {topRecipes.map(recipe => (
               <TableRow key={recipe.id}>
-                <TableCell><a href="/recipe/{recipe.id}">{recipe.id}</a></TableCell>
+                <TableCell><a href={`/recipe/${recipe.id}`}>{recipe.id}</a></TableCell>
                 <TableCell>{recipe.name}</TableCell>
                 <TableCell>{recipe.avg_rating}</TableCell>
               </TableRow>

@@ -6,7 +6,6 @@ import { createTheme } from "@mui/material/styles";
 import NavBar from './components/NavBar';
 import HomePage from './pages/HomePage';
 import RecipeStatPage from './pages/RecipeStatPage';
-import SongsPage from './pages/SongsPage';
 import RecipeInfoPage from './pages/RecipeInfoPage'
 import ContributorPage from './pages/ContributorPage'
 import RandomPage from './pages/RandomPage'
@@ -35,7 +34,6 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/recipe/stats" element={<RecipeStatPage />} />
           <Route path="/recipe/:recipe_id" element={<RecipeInfoPage />} />
-          <Route path="/songs" element={<SongsPage />} />
           <Route path="/contributor/:contributor_id" element={<ContributorPage />} />
           <Route path="/random" element={<RandomPage />} />
         </Routes>

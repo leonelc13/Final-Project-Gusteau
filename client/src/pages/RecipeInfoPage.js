@@ -106,7 +106,7 @@ export default function RecipeInfoPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {
+            {priceData && priceData.length > 0 &&
               priceData.map(row =>
                 <TableRow key={row.Ingredient_id}>
                   <TableCell key='Ingredient'>{row.Ingredient_name}</TableCell>

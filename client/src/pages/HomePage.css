@@ -1,3 +1,12 @@
 .submit {
     margin-top: 20px;
 }
+
+.applyButton {
+    width: 90%;
+    background-color: "rgb(242, 168, 159)";
+}
+
+.applyButton:hover {
+    background-color: "rgb(242, 168, 159)";
+}
