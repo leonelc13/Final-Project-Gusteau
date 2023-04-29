@@ -16,3 +16,9 @@
     text-align: center;
     font-family: "Helvetica Neue";
 }
+
+.toggle {
+    text-align: center;
+    width: 100%;
+    justify-content: center;
+}

@@ -236,10 +236,11 @@ export default function HomePage() {
                   open={drawerOpen}
                   onClose={handleDrawerClose}
                 >
-                  <Box sx={{ width: 250, paddingLeft: '8%', paddingRight: '8%' }}>
+                  <Box sx={{ width: 300, paddingLeft: '8%', paddingRight: '8%', justifyContent: 'center' }}>
                     <h4 className="drawerTitle">MORE FILTERS</h4>
-                    <FormGroup>
-                      <FormControlLabel control={<Switch checked={matchAll}
+                    <FormGroup sx={{ width: 300 }}>
+                      <FormControlLabel className="toggle" control={<Switch checked={matchAll}
+                        sx={{ "&.MuiSwitch-root .MuiSwitch-switchBase": { color: "rgb(242, 168, 159)" }, "&.MuiSwitch-root .Mui-checked": { color: "rgb(242, 168, 159)" } }}
                         onChange={() => setMatchAll(!matchAll)}
                         inputProps={{ 'aria-label': 'controlled' }} />} label="Match all ingredients" />
                       <TextField id="standard-basic" value={maxPrepTime === 1000 ? '' : maxPrepTime} onChange={(event) => { setMaxPrepTime(event.target.value); setIngrPage(1) }} label="Max Prep Time" variant="standard" />
