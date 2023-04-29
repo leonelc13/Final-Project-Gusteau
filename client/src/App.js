@@ -6,10 +6,8 @@ import { createTheme } from "@mui/material/styles";
 import NavBar from './components/NavBar';
 import HomePage from './pages/HomePage';
 import RecipeStatPage from './pages/RecipeStatPage';
-import RecipeInfoPage from './pages/RecipeInfoPage'
-import ContributorPage from './pages/ContributorPage'
-import RandomPage from './pages/RandomPage'
-
+import RecipeInfoPage from './pages/RecipeInfoPage';
+import ContributorPage from './pages/ContributorPage';
 
 // createTheme enables you to customize the look and feel of your app past the default
 // in this case, we only change the color scheme
@@ -35,7 +33,7 @@ export default function App() {
           <Route path="/recipe/stats" element={<RecipeStatPage />} />
           <Route path="/recipe/:recipe_id" element={<RecipeInfoPage />} />
           <Route path="/contributor/:contributor_id" element={<ContributorPage />} />
-          <Route path="/random" element={<RandomPage />} />
+          <Route path="/random" element={<RecipeInfoPage />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

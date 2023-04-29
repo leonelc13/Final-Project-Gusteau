@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Container, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Button } from '@mui/material';
 import Carousel from 'react-material-ui-carousel';
 import LinkPreview from '../components/LinkPreview.js';
 // import { LinkPreview } from '@dhaiwat10/react-link-preview';
@@ -56,7 +56,7 @@ export default function RecipeStatPage() {
     <Container maxWidth="lg">
       <TableContainer>
         <h1>Worst Recipes</h1>
-        <Table sx={{ minWidth: 650 }}>
+        <Table sx={{ minWidth: 650 }} size="small">
           {/* Display top 5 worst recipes */}
           <TableHead>
             <TableRow>
@@ -76,14 +76,14 @@ export default function RecipeStatPage() {
           </TableBody>
         </Table>
         {/* Pagination controls for worst recipes */}
-        <div style={flexFormat}>
-          <button onClick={handleWorstPrevClick} disabled={worstPage === 1}>Previous</button>
-          <button onClick={handleWorstNextClick} >Next</button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+          <Button onClick={handleWorstPrevClick} disabled={worstPage === 1} variant="contained">Previous</Button>
+          <Button onClick={handleWorstNextClick} variant="contained">Next</Button>
         </div>
       </TableContainer>
       <TableContainer>
         <h1>Top Recipes</h1>
-        <Table sx={{ minWidth: 650 }}>
+        <Table sx={{ minWidth: 650 }} size="small">
           {/* Display top 5 highest rated recipes */}
           <TableHead>
             <TableRow>
@@ -103,11 +103,11 @@ export default function RecipeStatPage() {
           </TableBody>
         </Table>
         {/* Pagination controls for top recipes */}
-        <div style={flexFormat}>
-          <button onClick={handleTopPrevClick} disabled={topPage === 1}>Previous</button>
-          <button onClick={handleTopNextClick}>Next</button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+          <Button onClick={handleTopPrevClick} disabled={topPage === 1} variant="contained">Previous</Button>
+          <Button onClick={handleTopNextClick} variant="contained">Next</Button>
         </div>
       </TableContainer>
-
-    </Container>);
+    </Container>
+  );
 }

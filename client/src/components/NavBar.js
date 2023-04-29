@@ -5,10 +5,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar } from '@fortawesome/free-solid-svg-icons';
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { faFire } from '@fortawesome/free-solid-svg-icons';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './navbar.css';
 
-
+const config = require('../config.json');
 
 // The hyperlinks in the NavBar contain a lot of repeated formatting code so a
 // helper component NavText local to the file is defined to prevent repeated code.
@@ -50,6 +50,14 @@ const NavText = ({ href, text, icon }) => {
 // to make the component look nice. Feel free to try changing the formatting
 // props to how it changes the look of the component.
 export default function NavBar() {
+  const [randomRecipe, setRandomRecipe] = useState({});
+
+  useEffect(() => {
+    fetch(`http://${config.server_host}:${config.server_port}/random`)
+      .then(res => res.json())
+      .then(resJson => { setRandomRecipe(resJson); console.log(resJson); });
+  }, []);
+
   return (
     <AppBar position='static' className='justify-content-center' style={{ backgroundColor: '#F2A89F' }} elevation={0}>
       <Container maxWidth='s'>
@@ -57,7 +65,9 @@ export default function NavBar() {
           <NavText href='/' text='GUSTEAU' icon={faUtensils} />
           <NavText href='/recipe/stats' text='RECIPE STATS' icon={faMagnifyingGlass} />
           <NavText href='/songs' text='REVIEWS' icon={faStar} />
-          <NavText href='/random' text='ROTD' icon={faFire} />
+
+          {randomRecipe && randomRecipe.length > 0 && < NavText href={`/recipe/${randomRecipe[0].id}`} text='ROTD' icon={faFire} />}
+
         </Toolbar>
       </Container>
     </AppBar>
