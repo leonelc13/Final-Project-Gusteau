@@ -856,5 +856,9 @@ module.exports = {
   recipe,
   rec_price,
   recipes,
-  recipe_reviews
+  recipe_reviews,
+  socialLogin,
+  login,
+  register,
+  ingredients
 }

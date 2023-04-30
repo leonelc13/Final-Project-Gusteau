@@ -61,7 +61,22 @@ export default function NavBar(props) {
           <NavText href='/' text='GUSTEAU' icon={faUtensils}/>
           <NavText href='/albums' text='RECIPE' icon={faMagnifyingGlass} />
           <NavText href='/songs' text='REVIEWS' icon={faStar} />
-          <NavText href='/random' text='ROTD' icon={faFire} />
+          <button
+            onClick={handleLogout}
+            className={`nav-button logout-button ${
+              logoutHovered ? "hovered" : ""
+            }`}
+            onMouseOver={() => setLogoutHovered(true)}
+            onMouseOut={() => setLogoutHovered(false)}
+          >
+            <div className={`hover-box ${logoutHovered ? "active" : ""}`} />
+            <FontAwesomeIcon
+              icon={faSignOutAlt}
+              style={{ marginRight: "5px" }}
+              className={logoutHovered ? "bounce" : ""}
+            />
+            LOGOUT
+          </button>
         </Toolbar>
       </Container>
     </AppBar>

@@ -8,7 +8,8 @@ import NavBar from './components/NavBar';
 import HomePage from './pages/HomePage';
 import RecipeStatPage from './pages/RecipeStatPage';
 import RecipeInfoPage from './pages/RecipeInfoPage';
-import ContributorPage from './pages/ContributorPage';import RegisterPage from './pages/RegisterPage'
+import ContributorPage from './pages/ContributorPage';
+import RegisterPage from './pages/RegisterPage'
 import LoginPage from './pages/LoginPage'
 
 
@@ -64,9 +65,7 @@ export default function App() {
           <Routes>
             <Route path='*' element={<Navigate to='/' />} />
             <Route path="/" element={<HomePage />} />
-            <Route path="/albums" element={<AlbumsPage />} />
             <Route path="/recipe/:recipe_id" element={<RecipeInfoPage />} />
-            <Route path="/songs" element={<SongsPage />} />
           </Routes>
           </>
         ) : (
