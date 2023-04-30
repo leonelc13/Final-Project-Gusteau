@@ -52,7 +52,6 @@ function changeTitle(title) {
 }
 
 function recSteps(steps) {
-  steps = "['items1 has sticky', 'add a couple of drops of vodka to help the flowers dry quicker', 'using fresh picked flowers , paint each flower individually with beaten egg white using the artists paintbrush', 'when thoroughly coated , sprinkle with fine sugar and place on the wire rack to dry', 'flowers are completely dry when stiff and brittle to the touch', 'they should be free of moisture', 'this could take 12 to 36 hours , depending on humidity', 'to hasten drying , you may place the candied flowers in an oven with a pilot light overnight , or in an oven set at 150 degrees to 200 degrees f with the door ajar for a few hours', 'store the dried , candied flowers in airtight containers until ready to use', 'they will keep for as long as a year']"
   const regex = /'([^']*)'/g;
   const stepStrings = steps.match(regex);
 

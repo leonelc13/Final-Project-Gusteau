@@ -65,7 +65,10 @@ export default function App() {
           <Routes>
             <Route path='*' element={<Navigate to='/' />} />
             <Route path="/" element={<HomePage />} />
+            <Route path="/recipe/stats" element={<RecipeStatPage />} />
             <Route path="/recipe/:recipe_id" element={<RecipeInfoPage />} />
+            <Route path="/contributor/:contributor_id" element={<ContributorPage />} />
+            <Route path="/random" element={<RecipeInfoPage />} />
           </Routes>
           </>
         ) : (
