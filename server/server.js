@@ -7,6 +7,11 @@ const app = express();
 app.use(cors({
   origin: '*',
 }));
+const bodyParser = require('body-parser');
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 
 // We use express to define our various API endpoints and
 // provide their handlers that we implemented in routes.js
@@ -26,6 +31,9 @@ app.get('/price/:recipe_id', routes.rec_price);
 app.get('/recipe_reviews/:recipe_id', routes.recipe_reviews);
 app.get('/recipes', routes.recipes);
 app.get('/ingredients', routes.ingredients)
+app.post("/login", routes.login);
+app.post("/register", routes.register);
+app.post("/socialLogin", routes.socialLogin);
 
 
 app.listen(config.server_port, () => {
