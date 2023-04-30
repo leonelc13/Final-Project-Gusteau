@@ -32,6 +32,7 @@ export default function ContributorPage() {
             },
         },
     };
+    // console.log(contributorFoods)
     return (
         <Container>
             <Box mx="auto">

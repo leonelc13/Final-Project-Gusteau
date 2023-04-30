@@ -77,6 +77,25 @@ export default function HomePage() {
     checkNext();
   };
 
+  function changeTitle(title) {
+    const words = title.split(' ');
+
+    // Loop through each word in the array
+    for (let i = 1; i < words.length; i++) {
+      // Check if the current word contains an isolated 's'
+      if (words[i] === 's' && words[i - 1]) {
+        // Join the 's' with the previous word
+        words[i - 1] += '\'s';
+        // Remove the 's' from the array of words
+        words.splice(i, 1);
+        // Decrement the counter variable to account for the removed word
+        i--;
+      }
+    }
+    let s = words.join(' ');
+    return s;
+  }
+
   const OPTIONS_LIMIT = 100;
   const defaultFilterOptions = createFilterOptions();
 
@@ -179,187 +198,191 @@ export default function HomePage() {
     }
   };
 
-  return <Container>{!checked ? (
+  return <Box sx={{ textAlign: 'center', marginTop: '50px' }}>
     <Container>
-      <Stack spacing={2} sx={{ width: "100%", marginTop: "3%" }}>
-        <FormGroup>
-          <FormControlLabel control={<Switch checked={checked}
-            onChange={() => setChecked(!checked)}
-            inputProps={{ 'aria-label': 'controlled' }} />} label="Search By Ingredient" />
-        </FormGroup>
-        <Autocomplete
-          onChange={(event, value) => setText(value)}
-          onKeyDown={handleKeyDown}
-          filterOptions={filterOptions}
-          renderOption={(props, option) => {
-            return (
-              <li {...props} key={option.id}>
-                {option.label}
-              </li>
-            );
-          }}
-          freeSolo
-          id="free-solo-2-demo"
-          autoHighlight
-          options={allRecipes}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Recipe Name"
-              InputProps={{
-                ...params.InputProps,
-                type: 'search',
-              }}
-            />
-          )}
-        />
-      </Stack>
-    </Container>
-  ) :
-    // Checking by ingredients
-    (<Container>
-      <Stack spacing={2} sx={{ width: "100%", marginTop: "3%" }}>
-        <Grid container>
-          <Grid item xs={2.5}>
+      <h1 style={{ fontFamily: "Helvetica Neue", fontSize: "5em", fontWeight: "bold", color: "#5d5e5d", textShadow: "1px 1px 2px #ccc" }}>Gusteau</h1>
+      <h3 style={{ fontFamily: "Helvetica Neue", fontSize: "2em", color: "#d57a65", fontStyle: "italic" }}>Search for recipes by name or ingredients</h3>
+      {!checked ? (
+        <Container>
+          <Stack spacing={2} sx={{ width: "100%", marginTop: "3%" }}>
             <FormGroup>
               <FormControlLabel control={<Switch checked={checked}
                 onChange={() => setChecked(!checked)}
                 inputProps={{ 'aria-label': 'controlled' }} />} label="Search By Ingredient" />
             </FormGroup>
-          </Grid>
-          <Grid item xs={3}>
-            <Container>
-              <Stack sx={{ width: "30%" }}>
-                <Button sx={{}} onClick={handleDrawerOpen}>Options</Button>
-                {/* Rest of the code */}
-              </Stack>
-            </Container>
-          </Grid>
-        </Grid>
-        <Drawer
-                  anchor="right"
-                  open={drawerOpen}
-                  onClose={handleDrawerClose}
-                >
-                  <Box sx={{ width: 300, justifyContent: 'center' }}>
-                    <h4 className="drawerTitle">MORE FILTERS</h4>
-                    <FormGroup sx={{ width: 300 }}>
-                      <FormControlLabel sx={{ width: '100%' }} className="toggle" control={<Switch checked={matchAll}
-                        sx={{ "&.MuiSwitch-root .MuiSwitch-switchBase": { color: "rgb(242, 168, 159)" }, "&.MuiSwitch-root .Mui-checked": { color: "rgb(242, 168, 159)" }}}
-                        onChange={() => setMatchAll(!matchAll)}
-                        inputProps={{ 'aria-label': 'controlled' }} />} label="Match all ingredients" />
-                      <TextField sx={{marginLeft: 3, marginRight: 3}}className="maxPrep" id="standard-basic" value={maxPrepTime === 1000 ? '' : maxPrepTime} onChange={(event) => { setMaxPrepTime(event.target.value); setIngrPage(1) }} label="Max Prep Time" variant="standard" />
-                    </FormGroup>
-                    <Button type="submit" variant="contained" onClick={handleSubmit} className="applyButton" sx={{ ":focus": { border: 'rgb(242, 168, 159)', outline: 'none', borderColor: 'rgb(242, 168, 159)' }, ":hover": { bgcolor: 'rgb(242, 168, 159)' }, backgroundColor: "rgb(242, 168, 159)", position: 'absolute', right: '5%', bottom: 20 }}>Apply</Button>
-                  </Box>
-                </Drawer>
-        <Autocomplete
-          key={clear}
-          onChange={(event, value) => { setText(value); console.log("VALUE", value); }}
-          // value={value}
-          onKeyDown={handleKeyPress}
-          filterOptions={filterOptions}
-          renderOption={(props, option) => {
-            return (
-              <li {...props} key={option.id}>
-                {option.label}
-              </li>
-            );
-          }}
-          freeSolo
-          id="free-solo-2-demo"
-          autoHighlight
-          options={allIngredients}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Ingredient Name"
-              InputProps={{
-                ...params.InputProps,
-                type: 'search',
+            <Autocomplete
+              onChange={(event, value) => setText(value)}
+              onKeyDown={handleKeyDown}
+              filterOptions={filterOptions}
+              renderOption={(props, option) => {
+                return (
+                  <li {...props} key={option.id}>
+                    {changeTitle(option.label)}
+                  </li>
+                );
               }}
+              freeSolo
+              id="free-solo-2-demo"
+              autoHighlight
+              options={allRecipes}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Recipe Name"
+                  InputProps={{
+                    ...params.InputProps,
+                    type: 'search',
+                  }}
+                />
+              )}
             />
-          )}
-        />
-        <Stack direction="row" spacing={2}>
+          </Stack>
+        </Container>
+      ) :
+        // Checking by ingredients
+        (<Container>
+          <Stack spacing={2} sx={{ width: "100%", marginTop: "3%" }}>
+            <Grid container>
+              <Grid item xs={2.5}>
+                <FormGroup>
+                  <FormControlLabel control={<Switch checked={checked}
+                    onChange={() => setChecked(!checked)}
+                    inputProps={{ 'aria-label': 'controlled' }} />} label="Search By Ingredient" />
+                </FormGroup>
+              </Grid>
+              <Grid item xs={3}>
+                <Container>
+                  <Stack sx={{ width: "30%" }}>
+                    <Button sx={{}} onClick={handleDrawerOpen}>Options</Button>
+                    {/* Rest of the code */}
+                  </Stack>
+                </Container>
+              </Grid>
+            </Grid>
+            <Drawer
+              anchor="right"
+              open={drawerOpen}
+              onClose={handleDrawerClose}
+            >
+              <Box sx={{ width: 300, justifyContent: 'center' }}>
+                <h4 className="drawerTitle">MORE FILTERS</h4>
+                <FormGroup sx={{ width: 300 }}>
+                  <FormControlLabel sx={{ width: '100%' }} className="toggle" control={<Switch checked={matchAll}
+                    sx={{ "&.MuiSwitch-root .MuiSwitch-switchBase": { color: "rgb(242, 168, 159)" }, "&.MuiSwitch-root .Mui-checked": { color: "rgb(242, 168, 159)" } }}
+                    onChange={() => setMatchAll(!matchAll)}
+                    inputProps={{ 'aria-label': 'controlled' }} />} label="Match all ingredients" />
+                  <TextField sx={{ marginLeft: 3, marginRight: 3 }} className="maxPrep" id="standard-basic" value={maxPrepTime === 1000 ? '' : maxPrepTime} onChange={(event) => { setMaxPrepTime(event.target.value); setIngrPage(1) }} label="Max Prep Time" variant="standard" />
+                </FormGroup>
+                <Button type="submit" variant="contained" onClick={handleSubmit} className="applyButton" sx={{ ":focus": { border: 'rgb(242, 168, 159)', outline: 'none', borderColor: 'rgb(242, 168, 159)' }, ":hover": { bgcolor: 'rgb(242, 168, 159)' }, backgroundColor: "rgb(242, 168, 159)", position: 'absolute', right: '5%', bottom: 20 }}>Apply</Button>
+              </Box>
+            </Drawer>
+            <Autocomplete
+              key={clear}
+              onChange={(event, value) => { setText(value); console.log("VALUE", value); }}
+              // value={value}
+              onKeyDown={handleKeyPress}
+              filterOptions={filterOptions}
+              renderOption={(props, option) => {
+                return (
+                  <li {...props} key={option.id}>
+                    {option.label}
+                  </li>
+                );
+              }}
+              freeSolo
+              id="free-solo-2-demo"
+              autoHighlight
+              options={allIngredients}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Ingredient Name"
+                  InputProps={{
+                    ...params.InputProps,
+                    type: 'search',
+                  }}
+                />
+              )}
+            />
+            <Stack direction="row" spacing={2}>
 
-          {foodTags.map((tag, idx) => {
-            return (<div key={idx}
-              style={{
-                display: "flex",
-                flexWrap: "wrap"
-              }}>
-              <Chip label={<Typography style={{ whiteSpace: 'normal' }}>{tag}</Typography>} size="medium" style={{ height: "100%" }}
-                onDelete={() => {
-                  const idx = foodTags.indexOf(tag);
-                  if (idx !== -1) {
-                    foodTags.splice(idx, 1);
-                    setFoodTags([...foodTags]);
-                    if (foodTags.length === 0) {
-                      if (matchAll) {
-                        setMatchingRecipesAll([]);
-                      } else {
-                        setMatchingRecipesOne([]);
+              {foodTags.map((tag, idx) => {
+                return (<div key={idx}
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap"
+                  }}>
+                  <Chip label={<Typography style={{ whiteSpace: 'normal' }}>{tag}</Typography>} size="medium" style={{ height: "100%" }}
+                    onDelete={() => {
+                      const idx = foodTags.indexOf(tag);
+                      if (idx !== -1) {
+                        foodTags.splice(idx, 1);
+                        setFoodTags([...foodTags]);
+                        if (foodTags.length === 0) {
+                          if (matchAll) {
+                            setMatchingRecipesAll([]);
+                          } else {
+                            setMatchingRecipesOne([]);
+                          }
+                        }
                       }
-                    }
-                  }
-                }} />
-            </div>)
-          })}
-        </Stack>
+                    }} />
+                </div>)
+              })}
+            </Stack>
 
-      </Stack>
+          </Stack>
 
-      <Container>
-        <Box mx="auto">
-          <ol>
-            {!matchAll && foodTags ? (matchingRecipesOne ? (
-              matchingRecipesOne.map((recipe) => (
-                <a href={`/recipe/${recipe.id}`} key={recipe.id} style={{ textDecoration: 'none' }}>
-                  <li style={{ backgroundColor: '#f5f5f5', borderRadius: '10px', padding: '10px', margin: '10px', boxShadow: '2px 2px 5px rgba(0,0,0,0.2)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                    <Typography variant="h5" component="h2" style={{ marginBottom: '5px' }}>
-                      {recipe.name}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary" component="p">
-                      User ID: {recipe.contributor_id} | Prep Time: {recipe.preparation_time} min | Calories: {recipe.calories} | Num Ingredients: {recipe.num_ingredients}
-                    </Typography>
-                  </li>
-                </a>
-              ))
-            ) : (
-              <p>Loading...</p>
-            )) : (matchingRecipesAll ? (
-              matchingRecipesAll.map((recipe) => (
-                <a href={`/recipe/${recipe.id}`} key={recipe.id} style={{ textDecoration: 'none' }}>
-                  <li style={{ backgroundColor: '#f5f5f5', borderRadius: '10px', padding: '10px', margin: '10px', boxShadow: '2px 2px 5px rgba(0,0,0,0.2)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                    <Typography variant="h5" component="h2" style={{ marginBottom: '5px' }}>
-                      {recipe.name}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary" component="p">
-                      User ID: {recipe.contributor_id} | Prep Time: {recipe.preparation_time} min | Calories: {recipe.calories} | Num Ingredients: {recipe.num_ingredients}
-                    </Typography>
-                  </li>
-                </a>
-              ))
-            ) : (
-              <p>Loading...</p>
-            ))}
-
-          </ol>
-        </Box>
-      </Container>
-      {
-        foodTags.length > 0 ?
           <Container>
-            <div style={flexFormat}>
-              <button onClick={handlePrev} disabled={ingrPage === 1}>Previous</button>
-              <button onClick={handleNext} disabled={disableNext}>Next</button>
-            </div>
+            <Box mx="auto">
+              <ol>
+                {!matchAll && foodTags ? (matchingRecipesOne ? (
+                  matchingRecipesOne.map((recipe) => (
+                    <a href={`/recipe/${recipe.id}`} key={recipe.id} style={{ textDecoration: 'none' }}>
+                      <li style={{ backgroundColor: '#f5f5f5', borderRadius: '10px', padding: '10px', margin: '10px', boxShadow: '2px 2px 5px rgba(0,0,0,0.2)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                        <Typography variant="h5" component="h2" style={{ marginBottom: '5px' }}>
+                          {recipe.name}
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary" component="p">
+                          User ID: {recipe.contributor_id} | Prep Time: {recipe.preparation_time} min | Calories: {recipe.calories} | Num Ingredients: {recipe.num_ingredients}
+                        </Typography>
+                      </li>
+                    </a>
+                  ))
+                ) : (
+                  <p>Loading...</p>
+                )) : (matchingRecipesAll ? (
+                  matchingRecipesAll.map((recipe) => (
+                    <a href={`/recipe/${recipe.id}`} key={recipe.id} style={{ textDecoration: 'none' }}>
+                      <li style={{ backgroundColor: '#f5f5f5', borderRadius: '10px', padding: '10px', margin: '10px', boxShadow: '2px 2px 5px rgba(0,0,0,0.2)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                        <Typography variant="h5" component="h2" style={{ marginBottom: '5px' }}>
+                          {recipe.name}
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary" component="p">
+                          User ID: {recipe.contributor_id} | Prep Time: {recipe.preparation_time} min | Calories: {recipe.calories} | Num Ingredients: {recipe.num_ingredients}
+                        </Typography>
+                      </li>
+                    </a>
+                  ))
+                ) : (
+                  <p>Loading...</p>
+                ))}
+
+              </ol>
+            </Box>
           </Container>
+          {
+            foodTags.length > 0 ?
+              <Container>
+                <div style={flexFormat}>
+                  <button onClick={handlePrev} disabled={ingrPage === 1}>Previous</button>
+                  <button onClick={handleNext} disabled={disableNext}>Next</button>
+                </div>
+              </Container>
 
-          : <></>
-      }
+              : <></>
+          }
 
-    </Container >)
-  } </Container >;
+        </Container >)
+      } </Container ></Box>;
 };

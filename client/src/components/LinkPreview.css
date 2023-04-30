@@ -1,9 +1,13 @@
-.box, .container {
-    flex: 1;
-    justify-content: 'space-between';
-    padding: 8;
-    flex-direction: 'row';
-    align-items: 'center';
+.box,
+.container {
+  flex: 1;
+  justify-content: 'space-between';
+  padding: 8;
+  flex-direction: 'row';
+  align-items: 'center';
+  margin-left: 15%;
+  margin-right: 15%;
+  margin-bottom: 5%;
 }
 
 .rounded {
@@ -12,18 +16,12 @@
   vertical-align: middle;
 }
 
-
-.link {
+.box {
+  width: 100%;
   padding: 8px;
-}
-
-.box
-{
-    width: 100%;
-    padding: 8px;
-    border: 1.5px solid #000;
-    border-radius: 8px;
-    -moz-border-radius: 15px;
+  border: 1.5px solid #000;
+  border-radius: 8px;
+  -moz-border-radius: 15px;
 }
 
 .linkPrev {
@@ -32,8 +30,9 @@
 }
 
 .text {
-  margin-left: 8px;
   font-weight: bold;
   font-size: 25px;
-  text-transform:capitalize;
+  text-transform: capitalize;
+  color: #5D5E5D;
+  line-height: 0.7;
 }

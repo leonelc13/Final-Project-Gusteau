@@ -19,23 +19,23 @@ const Item = styled(Paper)(({ theme }) => ({
 
 export default function LinkPreview(props) {
   return (
-    <Grid container spacing={0} className="box" width="60%">
+    <Grid container spacing={0} className="box" width="70%">
       <Grid item xs={2.5}>
         <img src={props.img} height='auto' width="100%" alt="Food.com logo" className="rounded"></img>
       </Grid>
-      <Grid item xs={9.5}>
+      <Grid sx={{ paddingLeft: "2.5%", paddingTop: "1%" }} item xs={9.5}>
         <Grid item xs={9.5}>
           <span className='text'>{props.name}</span>
         </Grid>
-        <Grid item={9.5}>
+        <Grid sx={{ paddingTop: "1%" }} item={9.5}>
           <a className='link' href={props.link}>{props.link}</a>
         </Grid>
       </Grid>
     </Grid>
-      // <Container class="box container">
-      //   <img class="image" src={'https://source.unsplash.com/random'} alt="Food.com logo"/>
-      //   <span class="text">Hey</span>
-      // </Container>
+    // <Container class="box container">
+    //   <img class="image" src={'https://source.unsplash.com/random'} alt="Food.com logo"/>
+    //   <span class="text">Hey</span>
+    // </Container>
   );
 }
 

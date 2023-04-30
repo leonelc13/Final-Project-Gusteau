@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Paper, Button, Link, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Container, Grid, Paper, Button, Link, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import Carousel from 'react-material-ui-carousel';
 import LinkPreview from '../components/LinkPreview.js';
+import Rating from '@mui/material/Rating';
+import './RecipeInfoPage.css';
 // import { LinkPreview } from '@dhaiwat10/react-link-preview';
 import { getLinkPreview, getPreviewFromContent } from "link-preview-js";
 // import { formatDuration, formatReleaseDate } from '../helpers/formatter';
@@ -30,10 +32,28 @@ function genLink(name, id) {
   s = 'https://www.food.com/recipe/' + s + '-' + id;
   return s;
 }
+function changeTitle(title) {
+  const words = title.split(' ');
+
+  // Loop through each word in the array
+  for (let i = 1; i < words.length; i++) {
+    // Check if the current word contains an isolated 's'
+    if (words[i] === 's' && words[i - 1]) {
+      // Join the 's' with the previous word
+      words[i - 1] += '\'s';
+      // Remove the 's' from the array of words
+      words.splice(i, 1);
+      // Decrement the counter variable to account for the removed word
+      i--;
+    }
+  }
+  let s = words.join(' ');
+  return s;
+}
 
 function recSteps(steps) {
-  console.log(steps);
-  const regex = /'([^']*'|[^']*)'/g;
+  steps = "['items1 has sticky', 'add a couple of drops of vodka to help the flowers dry quicker', 'using fresh picked flowers , paint each flower individually with beaten egg white using the artists paintbrush', 'when thoroughly coated , sprinkle with fine sugar and place on the wire rack to dry', 'flowers are completely dry when stiff and brittle to the touch', 'they should be free of moisture', 'this could take 12 to 36 hours , depending on humidity', 'to hasten drying , you may place the candied flowers in an oven with a pilot light overnight , or in an oven set at 150 degrees to 200 degrees f with the door ajar for a few hours', 'store the dried , candied flowers in airtight containers until ready to use', 'they will keep for as long as a year']"
+  const regex = /'([^']*)'/g;
   const stepStrings = steps.match(regex);
 
   // Map each step string to a JSX list item element
@@ -43,7 +63,7 @@ function recSteps(steps) {
     const formattedStepWithPeriod = `${formattedStep.charAt(0).toUpperCase()}${formattedStep.slice(1).replace(/\s*,/g, ',')}.`;
 
     return (
-      <li key={index}>
+      <li className="item" key={index}>
         {`${formattedStepWithPeriod}`}
       </li>
     );
@@ -83,50 +103,97 @@ export default function RecipeInfoPage() {
   );
 
   return (
-    <Container>
-      <Stack direction='row' justify='center'>
-        <Stack>
-          <h1>{recipe && recipe.length > 0 ? recipe[0].name.trim() : ''}</h1>
-          <h3>Contributor: {recipe && recipe.length > 0 ? <a href={`/contributor/${recipe[0].contributor_id}`}>{recipe[0].contributor_id}</a> : 'no contributor'}</h3>
-          <p>{recipe && recipe.length > 0 ? recSteps(recipe[0].steps) : 'not working'}</p>
-          <LinkPreview link={link} name={recipe && recipe.length > 0 ? recipe[0].name.trim() : ''} img={linkData.images !== undefined ? linkData.images[0] : "https://geniuskitchen.sndimg.com/fdc-new/img/FDC-Logo.png"} />
-          <Carousel>
-            {reviews ? reviews.map((item, i) => <Item key={i} item={item} />) : 'no reviews'}
-          </Carousel>
-        </Stack>
-      </Stack>
-      <h3>Prices</h3>
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell key='Ingredient'><b>Ingredient</b></TableCell>
-              <TableCell key='Country'><b>Country</b></TableCell>
-              <TableCell key='Price'><b>Price</b></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {priceData && priceData.length > 0 &&
-              priceData.map(row =>
-                <TableRow key={row.Ingredient_id}>
-                  <TableCell key='Ingredient'>{row.Ingredient_name}</TableCell>
-                  <TableCell key='Country'>{row.country}</TableCell>
-                  <TableCell key='Price'>{row.price && row.unit ? `${row.price} / ${row.unit}` : `$0.50/g`}</TableCell>
-                </TableRow>)
-            }
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Container>
+    <Container maxWidth={false} sx={{ width: 1 }}>
+      {priceData && reviews && priceData.length > 0 && reviews.length > 0 ?
+        (<Stack sx={{ width: 1, margin: 0 }} direction='row' justify='center'>
+          <Stack sx={{ marginLeft: '15%', marginRight: '15', width: 0.7 }}>
+            <h1 className="recipeName">{recipe && recipe.length > 0 ? changeTitle(recipe[0].name.trim()) : ''}</h1>
+            <h3 className="contributor">CONTRIBUTOR: {recipe && recipe.length > 0 ? <a className="clink" href={`/contributor/${recipe[0].contributor_id}`}>{recipe[0].contributor_id}</a> : 'no contributor'}</h3>
+            <p className="stepName">{recipe && recipe.length > 0 ? recSteps(recipe[0].steps) : 'not working'}</p>
+            <LinkPreview className="link" link={link} name={recipe && recipe.length > 0 ? changeTitle(recipe[0].name.trim()) : ''} img={linkData.images !== undefined ? linkData.images[0] : "https://geniuskitchen.sndimg.com/fdc-new/img/FDC-Logo.png"} />
+            <Grid container sx={{ width: 1 }}>
+              <Grid item xs={6}>
+                {reviews && reviews.length > 0 && <><p className="reviews">Reviews</p>
+                  <Carousel autoPlay={false}>
+                    {reviews ? reviews.map((item, i) => <Item key={i} item={item} />) : 'no reviews'}
+                  </Carousel></>}
+              </Grid>
+              <Grid item xs={6}>
+                <p className="prices">Prices</p>
+                <TableContainer sx={{ width: 1 }}>
+                  <Table sx={{ width: 0.7, marginLeft: '15%', marginRight: '15', marginBottom: '5%' }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell key='Ingredient'><b>Ingredient</b></TableCell>
+                        <TableCell key='Country'><b>Country</b></TableCell>
+                        <TableCell key='Price'><b>Price</b></TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {priceData && priceData.length > 0 &&
+                        priceData.map(row =>
+                          <TableRow sx={{ fontFamily: 'Helvetica Neue', fontSize: '18px' }} key={row.Ingredient_id}>
+                            <TableCell sx={{ fontFamily: 'Helvetica Neue', fontSize: '15px' }} key='Ingredient'>{row.Ingredient_name}</TableCell>
+                            <TableCell key='Country'>{row.country}</TableCell>
+                            <TableCell key='Price'>{row.price && row.unit ? `${row.price} / ${row.unit}` : `$0.50/g`}</TableCell>
+                          </TableRow>)
+                      }
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Grid>
+            </Grid>
+          </Stack>
+        </Stack>) : (<Stack sx={{ width: 1, margin: 0 }} direction='row' justify='center'>
+          <Stack sx={{ marginLeft: '15%', marginRight: '15', width: 0.7 }}>
+            <h1 className="recipeName">{recipe && recipe.length > 0 ? changeTitle(recipe[0].name.trim()) : ''}</h1>
+            <h3 className="contributor">CONTRIBUTOR: {recipe && recipe.length > 0 ? <a className="clink" href={`/contributor/${recipe[0].contributor_id}`}>{recipe[0].contributor_id}</a> : 'no contributor'}</h3>
+            <p className="stepName">{recipe && recipe.length > 0 ? recSteps(recipe[0].steps) : 'not working'}</p>
+            <LinkPreview className="link" link={link} name={recipe && recipe.length > 0 ? changeTitle(recipe[0].name.trim()) : ''} img={linkData.images !== undefined ? linkData.images[0] : "https://geniuskitchen.sndimg.com/fdc-new/img/FDC-Logo.png"} />
+            {reviews && reviews.length > 0 && <><p className="reviews">Reviews</p>
+              <Carousel sx={{ marginBottom: '5%' }} autoPlay={false}>
+                {reviews ? reviews.map((item, i) => <Item key={i} item={item} />) : 'no reviews'}
+              </Carousel></>}
+
+            {priceData && priceData.length > 0 && <>
+              <p className="prices">Prices</p>
+              <TableContainer sx={{ width: 1 }}>
+                <Table sx={{ width: 0.7, marginLeft: '15%', marginRight: '15', marginBottom: '5%' }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell key='Ingredient'><b>Ingredient</b></TableCell>
+                      <TableCell key='Country'><b>Country</b></TableCell>
+                      <TableCell key='Price'><b>Price</b></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {priceData && priceData.length > 0 &&
+                      priceData.map(row =>
+                        <TableRow sx={{ fontFamily: 'Helvetica Neue', fontSize: '18px' }} key={row.Ingredient_id}>
+                          <TableCell sx={{ fontFamily: 'Helvetica Neue', fontSize: '15px' }} key='Ingredient'>{row.Ingredient_name}</TableCell>
+                          <TableCell key='Country'>{row.country}</TableCell>
+                          <TableCell key='Price'>{row.price && row.unit ? `${row.price} / ${row.unit}` : `$0.50/g`}</TableCell>
+                        </TableRow>)
+                    }
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </>}
+          </Stack>
+        </Stack>)
+      }
+    </Container >
   );
 }
 
 function Item(props) {
   return (
     <Paper>
-      <h2>User {props.item.user_id}</h2>
-      <h2>Rating: {props.item.rating} </h2>
-      <p>{props.item.description}</p>
+      <Stack direction="row">
+        <Rating size="large" name="read-only" value={props.item.rating} precision={0.5} readOnly />
+        <p className='userId'>[User {props.item.user_id}]</p>
+      </Stack>
+      <p className="reviewText">{props.item.description}</p>
     </Paper>
   )
 }

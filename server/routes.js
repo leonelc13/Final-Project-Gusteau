@@ -14,7 +14,7 @@ connection.connect((err) => err && console.log(err));
 
 // Route 1: GET /all_ingredients/:<ingredients>?page=<>&page_size=<>&max_prep_time=<> -- DONE
 const all_ingredients = async function (req, res) {
-  const ingredient_list = req.params.ingredients.split(' ');
+  const ingredient_list = req.params.ingredients.split('&');
   const max_prep_time = req.query.max_prep_time ? parseInt(req.query.max_prep_time) : 200000;
 
   const page = req.query.page;
@@ -476,7 +476,7 @@ const worst_recipes = async function (req, res) {
       FROM Recipes r
       JOIN Reviews rev ON r.id = rev.recipe_id
       GROUP BY r.id
-      HAVING COUNT(rev.recipe_id) > 3 AND avg_rating < 3
+      HAVING COUNT(rev.recipe_id) > 2
       ORDER BY avg_rating ASC, num_reviews DESC
     `, (err, data) => {
       if (err || data.length === 0) {
@@ -492,7 +492,7 @@ const worst_recipes = async function (req, res) {
       FROM Recipes r
       JOIN Reviews rev ON r.id = rev.recipe_id
       GROUP BY r.id
-      HAVING COUNT(rev.recipe_id) > 3 AND avg_rating < 3
+      HAVING COUNT(rev.recipe_id) > 2
       ORDER BY avg_rating ASC, num_reviews DESC
       LIMIT ${pageSize}
     `;
@@ -519,7 +519,7 @@ const top_recipes_contributor = async function (req, res) {
 
   if (!page) {
     connection.query(`
-      SELECT R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, rev.description, AVG(rev.rating) as average_rating, COUNT(*) AS num_ratings
+      SELECT R.id, R.name, R.steps, R.calories, R.preparation_time, R.contributor_id, R.num_ingredients, rev.description, AVG(rev.rating) as average_rating, COUNT(*) AS num_ratings
       FROM Reviews rev RIGHT JOIN Recipes R on rev.Recipe_id = R.id
       WHERE R.id IN (SELECT rec.id FROM Recipes rec WHERE rec.contributor_id = '${cid}')
       GROUP BY R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients
@@ -577,7 +577,7 @@ const top_recipes = async function (req, res) {
     SELECT R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, AVG(Rv.rating) AS avg_rating, COUNT(*) AS num_ratings
     FROM Recipes R JOIN Reviews Rv ON R.id = Rv.Recipe_id
     GROUP BY R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients
-    HAVING avg_rating >= 4.9 AND num_ratings >= 10
+    HAVING COUNT(R.id.recipe_id) > 3
     ORDER BY avg_rating DESC
     `, (err, data) => {
       if (err || data.length === 0) {
@@ -592,7 +592,7 @@ const top_recipes = async function (req, res) {
     SELECT R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, AVG(Rv.rating) AS avg_rating, COUNT(*) AS num_ratings
     FROM Recipes R JOIN Reviews Rv ON R.id = Rv.Recipe_id
     GROUP BY R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients
-    HAVING avg_rating >= 4.9 AND num_ratings >= 10
+    HAVING num_ratings >= 10
     ORDER BY avg_rating DESC
       LIMIT ${pageSize}
     `;
@@ -676,6 +676,7 @@ const recipes = async function (req, res) {
   connection.query(`
   SELECT DISTINCT name as label, id as id
     FROM Recipes
+    ORDER BY id
   `, (err, data) => {
     if (err || data.length === 0) {
       console.log(err);

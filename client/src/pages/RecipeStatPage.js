@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Button } from '@mui/material';
+import { Container, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Button, Stack, Box } from '@mui/material';
 import Carousel from 'react-material-ui-carousel';
+import { KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material';
 import LinkPreview from '../components/LinkPreview.js';
 // import { LinkPreview } from '@dhaiwat10/react-link-preview';
 import { getLinkPreview, getPreviewFromContent } from "link-preview-js";
@@ -54,11 +55,48 @@ export default function RecipeStatPage() {
   };
 
   return (
-    <Container maxWidth="lg">
-      <div>
-        <TableContainer component={Paper}>
-          <h1>Worst Recipes</h1>
-          <Table sx={{ minWidth: 650 }} size="small">
+    <Box sx={{ mx: '10vw', marginTop: '2rem' }}>
+      <Stack direction="row" spacing={10}>
+        <TableContainer component={Paper} style={{ fontFamily: 'Helvetica Neue' }}>
+          <h1 style={{ textAlign: 'center', marginBottom: '1rem' }}>Top Recipes</h1>
+          <Table sx={{ minWidth: 650 }} size="large">
+            <TableHead>
+              <TableRow>
+                {headerCells.map((cell) => (
+                  <TableCell key={cell.id}>{cell.label}</TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {topRecipes.map((recipe) => (
+                <TableRow key={recipe.id}>
+                  <TableCell>
+                    <a href={`/recipe/${recipe.id}`}>{recipe.id}</a>
+                  </TableCell>
+                  <TableCell>{recipe.name}</TableCell>
+                  <TableCell>{recipe.avg_rating}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          {/* Pagination controls for top recipes */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: '1rem',
+              marginBottom: '1rem'
+            }}
+          >
+            <Button onClick={handleTopPrevClick} disabled={topPage === 1} variant="contained" sx={{ ml: '8px' }}>Previous</Button>
+            <Button onClick={handleTopNextClick} variant="contained" sx={{ mr: '8px' }}>Next</Button>
+          </div>
+        </TableContainer>
+
+        <TableContainer component={Paper} style={{ fontFamily: 'Helvetica Neue' }}>
+          <h1 style={{ textAlign: 'center', marginBottom: '1rem' }}>Worst Recipes</h1>
+          <Table sx={{ minWidth: 650 }} size="large">
             {/* Display top 5 worst recipes */}
             <TableHead>
               <TableRow>
@@ -86,66 +124,22 @@ export default function RecipeStatPage() {
               justifyContent: 'space-between',
               alignItems: 'center',
               marginTop: '1rem',
+              marginBottom: '1rem'
             }}
           >
             <Button
               onClick={handleWorstPrevClick}
               disabled={worstPage === 1}
               variant="contained"
-            >
+              sx={{ ml: '8px' }}>
               Previous
             </Button>
-            <Button onClick={handleWorstNextClick} variant="contained">
+            <Button onClick={handleWorstNextClick} variant="contained" sx={{ mr: '8px' }}>
               Next
             </Button>
           </div>
         </TableContainer>
-      </div>
-      <div>
-        <TableContainer component={Paper}>
-          <h1>Top Recipes</h1>
-          <Table sx={{ minWidth: 650 }} size="small">
-            <TableHead>
-              <TableRow>
-                {headerCells.map((cell) => (
-                  <TableCell key={cell.id}>{cell.label}</TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {topRecipes.map((recipe) => (
-                <TableRow key={recipe.id}>
-                  <TableCell>
-                    <a href={`/recipe/${recipe.id}`}>{recipe.id}</a>
-                  </TableCell>
-                  <TableCell>{recipe.name}</TableCell>
-                  <TableCell>{recipe.avg_rating}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          {/* Pagination controls for top recipes */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginTop: '1rem',
-            }}
-          >
-            <Button
-              onClick={handleTopPrevClick}
-              disabled={topPage === 1}
-              variant="contained"
-            >
-              Previous
-            </Button>
-            <Button onClick={handleTopNextClick} variant="contained">
-              Next
-            </Button>
-          </div>
-        </TableContainer>
-      </div>
-    </Container>
+      </Stack>
+    </Box>
   );
 }

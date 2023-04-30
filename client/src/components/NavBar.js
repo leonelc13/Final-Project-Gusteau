@@ -64,10 +64,8 @@ export default function NavBar() {
         <Toolbar style={{ display: 'flex', justifyContent: 'space-evenly' }} disableGutters>
           <NavText href='/' text='GUSTEAU' icon={faUtensils} />
           <NavText href='/recipe/stats' text='RECIPE STATS' icon={faMagnifyingGlass} />
-          <NavText href='/songs' text='REVIEWS' icon={faStar} />
-
-          {randomRecipe && randomRecipe.length > 0 && < NavText href={`/recipe/${randomRecipe[0].id}`} text='ROTD' icon={faFire} />}
-
+          <NavText href={randomRecipe && randomRecipe.length > 0 && `/recipe/${randomRecipe[0].id}`} text='ROTD' icon={faFire} />
+          <NavText href='/logout' text='LOGOUT' icon={faStar} />
         </Toolbar>
       </Container>
     </AppBar>
