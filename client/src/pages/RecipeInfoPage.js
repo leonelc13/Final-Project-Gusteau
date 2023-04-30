@@ -143,8 +143,8 @@ export default function RecipeInfoPage() {
               </Grid>
             </Grid>
           </Stack>
-        </Stack>) : (<Stack sx={{ width: 1, margin: 0 }} direction='row' justify='center'>
-          <Stack sx={{ marginLeft: '15%', marginRight: '15', width: 0.7 }}>
+        </Stack>) : (<Stack sx={{ width: 1, margin: 0, lineHeight: 1.3}} direction='row' justify='center'>
+          <Stack sx={{ marginLeft: '15%', marginRight: '15', width: 0.7, }}>
             <h1 className="recipeName">{recipe && recipe.length > 0 ? changeTitle(recipe[0].name.trim()) : ''}</h1>
             <h3 className="contributor">CONTRIBUTOR: {recipe && recipe.length > 0 ? <a className="clink" href={`/contributor/${recipe[0].contributor_id}`}>{recipe[0].contributor_id}</a> : 'no contributor'}</h3>
             <p className="stepName">{recipe && recipe.length > 0 ? recSteps(recipe[0].steps) : 'not working'}</p>

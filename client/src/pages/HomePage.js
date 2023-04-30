@@ -181,6 +181,10 @@ export default function HomePage() {
   }
 
   const handleKeyDown = ({ key, id }) => {
+    console.log(text);
+    if (text === '') {
+      return;
+    }
     if (key === 'Enter') {
       navigate(`/recipe/${text.id}`)
     }
@@ -200,8 +204,8 @@ export default function HomePage() {
 
   return <Box sx={{ textAlign: 'center', marginTop: '50px' }}>
     <Container>
-      <h1 style={{ fontFamily: "Helvetica Neue", fontSize: "5em", fontWeight: "bold", color: "#5d5e5d", textShadow: "1px 1px 2px #ccc" }}>Gusteau</h1>
-      <h3 style={{ fontFamily: "Helvetica Neue", fontSize: "2em", color: "#d57a65", fontStyle: "italic" }}>Search for recipes by name or ingredients</h3>
+      <h1 style={{ fontFamily: "Helvetica Neue", lineHeight: 0, marginBottom: '0.3em', marginTop: '1.6em', fontSize: "5em", fontWeight: "bold", color: "#5d5e5d", textShadow: "1px 1px 2px #ccc" }}>Gusteau</h1>
+      <h3 style={{ fontFamily: "Helvetica Neue", fontSize: "2em", marginBottom: '1em', color: "#d57a65", fontStyle: "italic" }}>Search for recipes by name or ingredients</h3>
       {!checked ? (
         <Container>
           <Stack spacing={2} sx={{ width: "100%", marginTop: "3%" }}>

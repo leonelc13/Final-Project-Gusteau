@@ -55,7 +55,7 @@ export default function RecipeStatPage() {
   };
 
   return (
-    <Box sx={{ mx: '10vw', marginTop: '2rem' }}>
+    <Box sx={{ mx: '10vw', marginTop: '2rem', marginBottom: '2rem' }}>
       <Stack direction="row" spacing={10}>
         <TableContainer component={Paper} style={{ fontFamily: 'Helvetica Neue' }}>
           <h1 style={{ textAlign: 'center', marginBottom: '1rem' }}>Top Recipes</h1>
