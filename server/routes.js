@@ -61,19 +61,21 @@ const all_ingredients = async function (req, res) {
                   ON recipes${i - 1}.Recipe_id = recipes${i}.Recipe_id `;
 
         if (i === ingredient_list.length - 1) {
-          query += `) \n`;
+          query += `), \n`;
         }
       }
+
+      query += `ratings AS (SELECT Recipe_id, rating FROM Reviews) `
 
       query += `SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews
           FROM combined_recipes c
           JOIN Recipes r1 ON c.Recipe_id = r1.id
-          LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
+          LEFT JOIN ratings r2 ON c.Recipe_id = r2.Recipe_id
           WHERE r1.num_ingredients >= ${ingredient_list.length} AND r1.preparation_time <= ${max_prep_time} 
           GROUP BY r1.id
           ORDER BY AVG(r2.rating), COUNT(r2.rating) `
     }
-
+    console.log(query);
     connection.query(query, (err, data) => {
       if (query === '' || err || data.length === 0) {
         console.log(err);
