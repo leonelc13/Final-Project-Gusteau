@@ -128,7 +128,7 @@ function Register(props) {
 
   return (
     <div className='register-container'>
-      <h1 className='header-text'>Register for Gusteau</h1>
+      <h1 className='header-text'>JOIN GUSTEAU</h1>
       {errorMessage && <p className='error-text'>{errorMessage}</p>}
       <form className="register-form" onSubmit={handleSubmit}>
         <p className="title-text">Sign Up</p>

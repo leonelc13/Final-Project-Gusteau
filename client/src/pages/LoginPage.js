@@ -130,7 +130,7 @@ function Login(props) {
 
   return (
     <div className="login-container">
-      <h1 className="heading-text">Welcome Back</h1>
+      <h1 className="heading-text">WELCOME BACK</h1>
       {errorMessage && <p className="error-message">{errorMessage}</p>}
 
       <form className="login-form" onSubmit={handleSubmit}>
