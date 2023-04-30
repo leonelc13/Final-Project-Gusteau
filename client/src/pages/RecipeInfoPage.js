@@ -133,8 +133,8 @@ export default function RecipeInfoPage() {
                         priceData.map(row =>
                           <TableRow sx={{ fontFamily: 'Helvetica Neue', fontSize: '18px' }} key={row.Ingredient_id}>
                             <TableCell sx={{ fontFamily: 'Helvetica Neue', fontSize: '15px' }} key='Ingredient'>{row.Ingredient_name}</TableCell>
-                            <TableCell key='Country'>{row.country}</TableCell>
-                            <TableCell key='Price'>{row.price && row.unit ? `${row.price} / ${row.unit}` : `$0.50/g`}</TableCell>
+                            <TableCell key='Country'>{row.country} - {row.currency}</TableCell>
+                            <TableCell key='Price'>{row.price && row.unit ? `${row.price} ${row.currency}/ ${row.unit}` : `0.50 ${row.currency}/g`}</TableCell>
                           </TableRow>)
                       }
                     </TableBody>
@@ -143,7 +143,7 @@ export default function RecipeInfoPage() {
               </Grid>
             </Grid>
           </Stack>
-        </Stack>) : (<Stack sx={{ width: 1, margin: 0, lineHeight: 1.3}} direction='row' justify='center'>
+        </Stack>) : (<Stack sx={{ width: 1, margin: 0, lineHeight: 1.3 }} direction='row' justify='center'>
           <Stack sx={{ marginLeft: '15%', marginRight: '15', width: 0.7, }}>
             <h1 className="recipeName">{recipe && recipe.length > 0 ? changeTitle(recipe[0].name.trim()) : ''}</h1>
             <h3 className="contributor">CONTRIBUTOR: {recipe && recipe.length > 0 ? <a className="clink" href={`/contributor/${recipe[0].contributor_id}`}>{recipe[0].contributor_id}</a> : 'no contributor'}</h3>
@@ -170,8 +170,8 @@ export default function RecipeInfoPage() {
                       priceData.map(row =>
                         <TableRow sx={{ fontFamily: 'Helvetica Neue', fontSize: '18px' }} key={row.Ingredient_id}>
                           <TableCell sx={{ fontFamily: 'Helvetica Neue', fontSize: '15px' }} key='Ingredient'>{row.Ingredient_name}</TableCell>
-                          <TableCell key='Country'>{row.country}</TableCell>
-                          <TableCell key='Price'>{row.price && row.unit ? `${row.price} / ${row.unit}` : `$0.50/g`}</TableCell>
+                          <TableCell key='Country'>{row.country} - {row.currency}</TableCell>
+                          <TableCell key='Price'>{row.price && row.unit ? `${row.price} ${row.currency}/ ${row.unit}` : `0.50 ${row.currency}/g`}</TableCell>
                         </TableRow>)
                     }
                   </TableBody>

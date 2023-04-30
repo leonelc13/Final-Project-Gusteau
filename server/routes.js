@@ -492,7 +492,7 @@ const worst_recipes = async function (req, res) {
     });
   } else {
     let queryString = `
-      SELECT r.name, AVG(rev.rating) as avg_rating, COUNT(rev.recipe_id) as num_reviews, r.id, r.steps, r.calories, rev.description, r.num_ingredients, r.contributor_id
+      SELECT r.name, AVG(rev.rating) as avg_rating, COUNT(rev.recipe_id) as num_reviews, r.id, r.steps, r.calories, rev.description, r.num_ingredients, r.contributor_id, p.price
       FROM Recipes r
       JOIN Reviews rev ON r.id = rev.recipe_id
       GROUP BY r.id
@@ -523,8 +523,10 @@ const top_recipes_contributor = async function (req, res) {
 
   if (!page) {
     connection.query(`
-      SELECT R.id, R.name, R.steps, R.calories, R.preparation_time, R.contributor_id, R.num_ingredients, rev.description, AVG(rev.rating) as average_rating, COUNT(*) AS num_ratings
+      SELECT R.id, R.name, R.steps, R.calories, R.preparation_time, R.contributor_id, R.num_ingredients, rev.description, AVG(rev.rating) as average_rating, COUNT(*) AS num_ratings, p.price
       FROM Reviews rev RIGHT JOIN Recipes R on rev.Recipe_id = R.id
+      JOIN Recipe_Ingredient ip ON ip.recipe_id = R.id 
+      JOIN Prices p ON p.Ingredient_id = ip.Ingredient_id
       WHERE R.id IN (SELECT rec.id FROM Recipes rec WHERE rec.contributor_id = '${cid}')
       GROUP BY R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients
       ORDER BY average_rating DESC, num_ratings DESC
@@ -544,8 +546,10 @@ const top_recipes_contributor = async function (req, res) {
 
   } else {
     let queryString = `
-    SELECT R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, rev.description, AVG(rev.rating) as average_rating, COUNT(*) AS num_ratings
+    SELECT R.id, R.name, R.steps, R.calories, R.preparation_time, R.contributor_id, R.num_ingredients, rev.description, AVG(rev.rating) as average_rating, COUNT(*) AS num_ratings, p.price
       FROM Reviews rev RIGHT JOIN Recipes R on rev.Recipe_id = R.id
+      JOIN Recipe_Ingredient ip ON ip.recipe_id = R.id 
+      JOIN Prices p ON p.Ingredient_id = ip.Ingredient_id
       WHERE R.id IN (SELECT rec.id FROM Recipes rec WHERE rec.contributor_id = '${cid}')
       GROUP BY R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients
       ORDER BY average_rating DESC, num_ratings DESC
@@ -578,8 +582,10 @@ const top_recipes = async function (req, res) {
 
   if (!page) {
     connection.query(`
-    SELECT R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, AVG(Rv.rating) AS avg_rating, COUNT(*) AS num_ratings
+    SELECT R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, AVG(Rv.rating) AS avg_rating, COUNT(*) AS num_ratings, p.price
     FROM Recipes R JOIN Reviews Rv ON R.id = Rv.Recipe_id
+    JOIN Recipe_Ingredient ip ON ip.recipe_id = R.id 
+    JOIN Prices p ON p.Ingredient_id = ip.Ingredient_id
     GROUP BY R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients
     HAVING COUNT(R.id.recipe_id) > 3
     ORDER BY avg_rating DESC
@@ -593,8 +599,10 @@ const top_recipes = async function (req, res) {
     });
   } else {
     let queryString = `
-    SELECT R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, AVG(Rv.rating) AS avg_rating, COUNT(*) AS num_ratings
+    SELECT R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, AVG(Rv.rating) AS avg_rating, COUNT(*) AS num_ratings, p.price
     FROM Recipes R JOIN Reviews Rv ON R.id = Rv.Recipe_id
+    JOIN Recipe_Ingredient ip ON ip.recipe_id = R.id 
+    JOIN Prices p ON p.Ingredient_id = ip.Ingredient_id
     GROUP BY R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients
     HAVING num_ratings >= 10
     ORDER BY avg_rating DESC
@@ -661,9 +669,9 @@ const rec_price = async function (req, res) {
     FROM Recipes rec JOIN Recipe_Ingredient ri on rec.id = ri.Recipe_id
     WHERE rec.id = '${rid}'
   )
-  SELECT jri.Ingredient_id, p.Ingredient_name, p.unit, p.country, AVG(p.price) AS avg_price
+  SELECT jri.Ingredient_id, p.Ingredient_name, p.currency, p.unit, p.country, AVG(p.price) AS avg_price
   FROM joined_recipe_and_ingredients jri JOIN Prices p ON jri.Ingredient_id = p.Ingredient_id
-  GROUP BY Ingredient_id, Ingredient_name, p.unit
+  GROUP BY Ingredient_id, Ingredient_name, p.unit, p.currency
   `;
   connection.query(queryString, (err, data) => {
     if (err || data.length === 0) {
@@ -713,15 +721,15 @@ const recipe_reviews = async function (req, res) {
 const login = async function (req, res) {
   const { name, password } = req.body;
   if (!name || name === '') {
-    res.status(401).json({error: 'Missing username'})
+    res.status(401).json({ error: 'Missing username' })
     return;
   } else if (!password || password === '') {
-    res.status(401).json({error: 'Missing password'});
+    res.status(401).json({ error: 'Missing password' });
     return;
   } else if ((!name || name === '') && (!password || password === '')) {
-    res.status(401).json({error: 'Missing username and password'});
+    res.status(401).json({ error: 'Missing username and password' });
     return;
-  } 
+  }
 
   let queryString = `
     SELECT * 
@@ -730,15 +738,15 @@ const login = async function (req, res) {
   `;
   connection.query(queryString, (err, data) => {
     if (err || data.length === 0) {
-        res.status(401).json({error: 'Invalid username or password'});
+      res.status(401).json({ error: 'Invalid username or password' });
     } else {
-        const token = authenticateUser(name);
-        const response = {
-            username: data[0].username,
-            email: data[0].email,
-            apptoken: token
-        }
-        res.status(201).send(response);
+      const token = authenticateUser(name);
+      const response = {
+        username: data[0].username,
+        email: data[0].email,
+        apptoken: token
+      }
+      res.status(201).send(response);
     }
   });
 }
@@ -749,16 +757,16 @@ const register = async function (req, res) {
   const { name, email, password } = req.body;
 
   if ((!name || name === '') && (!password || password === '') && (!email || email === '')) {
-    res.status(401).json({error: 'Missing username, email, and password'});
+    res.status(401).json({ error: 'Missing username, email, and password' });
     return;
   } else if (!name || name === '') {
-    res.status(401).json({error: 'Missing username'});
+    res.status(401).json({ error: 'Missing username' });
     return;
   } else if (!password || password === '') {
-    res.status(401).json({error: 'Missing password'});
+    res.status(401).json({ error: 'Missing password' });
     return;
   } else if (!email || email === '') {
-    res.status(401).json({error: 'Missing email'})
+    res.status(401).json({ error: 'Missing email' })
   }
 
   let queryString = `
@@ -768,19 +776,19 @@ const register = async function (req, res) {
 
   connection.query(queryString, (err, data) => {
     if (err) {
-      res.status(401).json({error: 'User already exists'});
-    } 
-    
+      res.status(401).json({ error: 'User already exists' });
+    }
+
     try {
       const token = authenticateUser(name);
       const response = {
-        username: name, 
-        password: password, 
+        username: name,
+        password: password,
         apptoken: token
       }
       res.status(201).send(response);
     } catch (err) {
-        res.status(401).json({error: `${err.message}`});
+      res.status(401).json({ error: `${err.message}` });
     }
   });
 }
@@ -795,7 +803,7 @@ const socialLogin = async function (req, res) {
   `;
   connection.query(queryString, (err, data) => {
     if (err) {
-      res.status(500).json({error: 'Internal server error'});
+      res.status(500).json({ error: 'Internal server error' });
     } else if (data.length === 0) {
       let insertString = `
         INSERT INTO Users (username, email, password)
@@ -803,7 +811,7 @@ const socialLogin = async function (req, res) {
       `;
       connection.query(insertString, (err) => {
         if (err) {
-          res.status(500).json({error: 'Internal server error'});
+          res.status(500).json({ error: 'Internal server error' });
         } else {
           // User registered successfully, generate a token and return it
           const token = authenticateUser(name);
