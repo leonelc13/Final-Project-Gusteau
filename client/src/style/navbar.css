@@ -1,10 +1,10 @@
 .hover-box {
-  position: absolute; /* change to absolute */
+  position: absolute;
   width: 150%;
   height: 150%;
   opacity: 0;
   transition: opacity 0.2s ease-in-out;
-  background-color: #D57A6F;
+  background-color: #d57a6f;
   z-index: -1;
   border-radius: 5px;
 }
@@ -13,12 +13,28 @@
   opacity: 0.5;
 }
 
-.NavLink {
+.NavLink,
+.logout-button {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
+  text-decoration: none;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: "Helvetica Neue";
+  font-weight: 600;
+  font-size: 18px;
+  color: #ffffff; /* Add this line to keep the text color white */
+  padding: 2px 20px;
+}
+
+.bounce {
+  animation: bounce 0.6s;
 }
 
 @keyframes bounce {
@@ -39,10 +55,6 @@
   }
 }
 
-.bounce {
-  animation: bounce 0.6s;
+.logout-button {
+  margin-left: 10px;
 }
-
-
-
-

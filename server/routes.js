@@ -1,5 +1,7 @@
 const mysql = require('mysql')
 const config = require('./config.json')
+const { authenticateUser } = require('./utils');
+
 
 // Creates MySQL connection using database credential provided in config.json
 // Do not edit. If the connection fails, make sure to check that config.json is filled out correctly
@@ -705,6 +707,124 @@ const recipe_reviews = async function (req, res) {
   });
 }
 
+// Route 16: POST /login
+const login = async function (req, res) {
+  const { name, password } = req.body;
+  if (!name || name === '') {
+    res.status(401).json({error: 'Missing username'})
+    return;
+  } else if (!password || password === '') {
+    res.status(401).json({error: 'Missing password'});
+    return;
+  } else if ((!name || name === '') && (!password || password === '')) {
+    res.status(401).json({error: 'Missing username and password'});
+    return;
+  } 
+
+  let queryString = `
+    SELECT * 
+    FROM Users 
+    WHERE username = '${name}' AND password = '${password}'
+  `;
+  connection.query(queryString, (err, data) => {
+    if (err || data.length === 0) {
+        res.status(401).json({error: 'Invalid username or password'});
+    } else {
+        const token = authenticateUser(name);
+        const response = {
+            username: data[0].username,
+            email: data[0].email,
+            apptoken: token
+        }
+        res.status(201).send(response);
+    }
+  });
+}
+
+// Route 17: POST /register
+const register = async function (req, res) {
+  console.log(req.body);
+  const { name, email, password } = req.body;
+
+  if ((!name || name === '') && (!password || password === '') && (!email || email === '')) {
+    res.status(401).json({error: 'Missing username, email, and password'});
+    return;
+  } else if (!name || name === '') {
+    res.status(401).json({error: 'Missing username'});
+    return;
+  } else if (!password || password === '') {
+    res.status(401).json({error: 'Missing password'});
+    return;
+  } else if (!email || email === '') {
+    res.status(401).json({error: 'Missing email'})
+  }
+
+  let queryString = `
+    INSERT INTO Users (username, email, password)
+    VALUES ('${name}','${email}', '${password}') 
+  `
+
+  connection.query(queryString, (err, data) => {
+    if (err) {
+      res.status(401).json({error: 'User already exists'});
+    } 
+    
+    try {
+      const token = authenticateUser(name);
+      const response = {
+        username: name, 
+        password: password, 
+        apptoken: token
+      }
+      res.status(201).send(response);
+    } catch (err) {
+        res.status(401).json({error: `${err.message}`});
+    }
+  });
+}
+
+const socialLogin = async function (req, res) {
+  const { name, password, email } = req.body;
+  // Check if the user already exists in the database
+  let queryString = `
+    SELECT * 
+    FROM Users 
+    WHERE email = '${email}'
+  `;
+  connection.query(queryString, (err, data) => {
+    if (err) {
+      res.status(500).json({error: 'Internal server error'});
+    } else if (data.length === 0) {
+      let insertString = `
+        INSERT INTO Users (username, email, password)
+        VALUES ('${name}', '${email}', '${password}')
+      `;
+      connection.query(insertString, (err) => {
+        if (err) {
+          res.status(500).json({error: 'Internal server error'});
+        } else {
+          // User registered successfully, generate a token and return it
+          const token = authenticateUser(name);
+          console.log(token);
+          const response = {
+            username: name,
+            email: email,
+            apptoken: token
+          }
+          res.status(201).send(response);
+        }
+      });
+    } else {
+      const token = authenticateUser(name);
+      const response = {
+        username: name,
+        email: email,
+        apptoken: token
+      }
+      res.status(200).send(response);
+    }
+  });
+}
 // Route 16: GET /ingredients -- DONE
 const ingredients = async function (req, res) {
   let queryString = `
@@ -736,6 +856,5 @@ module.exports = {
   recipe,
   rec_price,
   recipes,
-  recipe_reviews,
-  ingredients
+  recipe_reviews
 }
