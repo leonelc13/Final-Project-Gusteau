@@ -6,8 +6,7 @@ import LinkPreview from '../components/LinkPreview.js';
 import Rating from '@mui/material/Rating';
 import './RecipeInfoPage.css';
 // import { LinkPreview } from '@dhaiwat10/react-link-preview';
-import { getLinkPreview, getPreviewFromContent } from "link-preview-js";
-// import { formatDuration, formatReleaseDate } from '../helpers/formatter';
+import { getLinkPreview, getPreviewFromContent } from "link-preview-js"
 const config = require('../config.json');
 
 function genLink(name, id) {
@@ -81,14 +80,17 @@ export default function RecipeInfoPage() {
   const [priceData, setPriceData] = useState([]);
 
   useEffect(() => {
+    // get review for given recipe
     fetch(`http://${config.server_host}:${config.server_port}/recipe_reviews/${recipe_id}`)
       .then(res => res.json())
       .then(resJson => { setReviews(resJson) });
 
+    // get basic recipe info
     fetch(`http://${config.server_host}:${config.server_port}/recipe/${recipe_id}`)
       .then(res => res.json())
       .then(resJson => { setRecipe(resJson) });
 
+    // get prices for this recipe's ingredients
     fetch(`http://${config.server_host}:${config.server_port}/price/${recipe_id}`)
       .then(res => res.json())
       .then(resJson => { setPriceData(resJson) });
@@ -110,6 +112,7 @@ export default function RecipeInfoPage() {
             <h3 className="contributor">CONTRIBUTOR: {recipe && recipe.length > 0 ? <a className="clink" href={`/contributor/${recipe[0].contributor_id}`}>{recipe[0].contributor_id}</a> : 'no contributor'}</h3>
             <p className="stepName">{recipe && recipe.length > 0 ? recSteps(recipe[0].steps) : 'not working'}</p>
             <LinkPreview className="link" link={link} name={recipe && recipe.length > 0 ? changeTitle(recipe[0].name.trim()) : ''} img={linkData.images !== undefined ? linkData.images[0] : "https://geniuskitchen.sndimg.com/fdc-new/img/FDC-Logo.png"} />
+            {/* render reviews carousel */}
             <Grid container sx={{ width: 1 }}>
               <Grid item xs={6}>
                 {reviews && reviews.length > 0 && <><p className="reviews">Reviews</p>
@@ -117,6 +120,7 @@ export default function RecipeInfoPage() {
                     {reviews ? reviews.map((item, i) => <Item key={i} item={item} />) : 'no reviews'}
                   </Carousel></>}
               </Grid>
+              {/* render prices table */}
               <Grid item xs={6}>
                 <p className="prices">Prices</p>
                 <TableContainer sx={{ width: 1 }}>
@@ -148,12 +152,15 @@ export default function RecipeInfoPage() {
             <h1 className="recipeName">{recipe && recipe.length > 0 ? changeTitle(recipe[0].name.trim()) : ''}</h1>
             <h3 className="contributor">CONTRIBUTOR: {recipe && recipe.length > 0 ? <a className="clink" href={`/contributor/${recipe[0].contributor_id}`}>{recipe[0].contributor_id}</a> : 'no contributor'}</h3>
             <p className="stepName">{recipe && recipe.length > 0 ? recSteps(recipe[0].steps) : 'not working'}</p>
+
+            {/* render reviews carousel */}
             <LinkPreview className="link" link={link} name={recipe && recipe.length > 0 ? changeTitle(recipe[0].name.trim()) : ''} img={linkData.images !== undefined ? linkData.images[0] : "https://geniuskitchen.sndimg.com/fdc-new/img/FDC-Logo.png"} />
             {reviews && reviews.length > 0 && <><p className="reviews">Reviews</p>
               <Carousel sx={{ marginBottom: '5%' }} autoPlay={false}>
                 {reviews ? reviews.map((item, i) => <Item key={i} item={item} />) : 'no reviews'}
               </Carousel></>}
 
+            {/* render prices table */}
             {priceData && priceData.length > 0 && <>
               <p className="prices">Prices</p>
               <TableContainer sx={{ width: 1 }}>
@@ -181,10 +188,11 @@ export default function RecipeInfoPage() {
           </Stack>
         </Stack>)
       }
-    </Container >
+    </Container>
   );
 }
 
+// returns one slide of carousel, which represents a single review for given recipe
 function Item(props) {
   return (
     <Paper>
