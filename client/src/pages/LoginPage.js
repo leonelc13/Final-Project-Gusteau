@@ -8,9 +8,6 @@ import { SiGoogle } from 'react-icons/si';
 import { faFacebookF } from '@fortawesome/free-brands-svg-icons' 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-
-
-
 const config = require('../config.json');
 
 function Login(props) {

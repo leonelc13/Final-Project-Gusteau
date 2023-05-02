@@ -1,20 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Container, Divider, Link, Button, Box, Grid } from '@mui/material';
+import { Container, Button, Box, Grid } from '@mui/material';
 import Drawer from '@mui/material/Drawer';
 
 import Chip from '@mui/material/Chip';
-import LinkPreview from '../components/LinkPreview';
 import * as React from 'react';
-import { Navigate } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import TextField from '@mui/material/TextField';
 import Stack from '@mui/material/Stack';
-import { getLinkPreview, getPreviewFromContent } from "link-preview-js";
 import { Autocomplete, createFilterOptions, Typography } from '@mui/material';
 import Switch from '@mui/material/Switch';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import './HomePage.css';
+import '../style/HomePage.css';
 
 const config = require('../config.json');
 
@@ -58,7 +55,7 @@ export default function HomePage() {
   const handleDrawerOpen = () => {
     setDrawerOpen(true);
   };
-
+  
   const handleDrawerClose = () => {
     setDrawerOpen(false);
   };
@@ -98,28 +95,12 @@ export default function HomePage() {
     return s;
   }
 
+  //limit # of options in autocomplete to 100 to prevent lag
   const OPTIONS_LIMIT = 100;
   const defaultFilterOptions = createFilterOptions();
 
   const filterOptions = (options, state) => {
     return defaultFilterOptions(options, state).slice(0, OPTIONS_LIMIT);
-  };
-
-  const styles = {
-    listItem: {
-      border: "1px solid #ccc",
-      borderRadius: "4px",
-      marginBottom: "10px",
-      padding: "10px",
-      backgroundColor: "#f5f5f5",
-    },
-    link: {
-      color: "#000",
-      textDecoration: "none",
-      "&:hover": {
-        textDecoration: "underline",
-      },
-    },
   };
 
   const navigate = useNavigate();
@@ -153,6 +134,7 @@ export default function HomePage() {
     checkNext();
   }, [ingrPage, matchingRecipesOne, matchingRecipesAll])
 
+  //handles pagination
   const checkNext = () => {
     if (!matchAll) {
       if (matchingRecipesOne) {
@@ -187,6 +169,7 @@ export default function HomePage() {
 
   }
 
+  // what to do when Enter is pressed
   const handleKeyDown = ({ key, id }) => {
     console.log(text);
     if (text === '') {

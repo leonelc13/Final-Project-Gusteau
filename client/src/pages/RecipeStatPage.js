@@ -1,13 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Container, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Button, Stack, Box } from '@mui/material';
-import Carousel from 'react-material-ui-carousel';
-import { KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material';
-import LinkPreview from '../components/LinkPreview.js';
-// import { LinkPreview } from '@dhaiwat10/react-link-preview';
-import { getLinkPreview, getPreviewFromContent } from "link-preview-js";
+import { TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Button, Stack, Box } from '@mui/material';
 import Paper from '@mui/material/Paper';
-// import { formatDuration, formatReleaseDate } from '../helpers/formatter';
 const config = require('../config.json');
 
 export default function RecipeStatPage() {
@@ -26,11 +19,6 @@ export default function RecipeStatPage() {
       .then(resJson => { setTopRecipes(resJson) });
   }, [worstPage, topPage]);
 
-  // flexFormat provides the formatting options for a "flexbox" layout that enables the album cards to
-  // be displayed side-by-side and wrap to the next line when the screen is too narrow. Flexboxes are
-  // incredibly powerful. You can learn more on MDN web docs linked below (or many other online resources)
-  // https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox
-  const flexFormat = { display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-evenly' };
   // Define table header cells
   const headerCells = [
     { id: 'id', label: 'ID' },
@@ -38,6 +26,7 @@ export default function RecipeStatPage() {
     { id: 'rating', label: 'Rating' },
   ];
 
+  // functions for handling pagination button clicks
   const handleWorstPrevClick = () => {
     setWorstPage(prevPage => prevPage - 1);
   };

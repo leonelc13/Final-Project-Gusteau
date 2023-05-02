@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Grid, Paper, Button, Link, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Container, Grid, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import Carousel from 'react-material-ui-carousel';
 import LinkPreview from '../components/LinkPreview.js';
 import Rating from '@mui/material/Rating';
-import './RecipeInfoPage.css';
-// import { LinkPreview } from '@dhaiwat10/react-link-preview';
-import { getLinkPreview, getPreviewFromContent } from "link-preview-js"
+import '../style/RecipeInfoPage.css';
+import { getLinkPreview } from "link-preview-js"
 const config = require('../config.json');
 
 function genLink(name, id) {
@@ -105,6 +104,7 @@ export default function RecipeInfoPage() {
 
   return (
     <Container maxWidth={false} sx={{ width: 1 }}>
+      {/* conditional rendering depending on whether both prices and reviews are present*/}
       {priceData && reviews && priceData.length > 0 && reviews.length > 0 ?
         (<Stack sx={{ width: 1, margin: 0 }} direction='row' justify='center'>
           <Stack sx={{ marginLeft: '15%', marginRight: '15', width: 0.7 }}>
