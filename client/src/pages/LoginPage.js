@@ -11,12 +11,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 const config = require('../config.json');
 
 function Login(props) {
+  // creating all of the variables that will store user information such as password, username, etc
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [ googleUser, setGoogleUser ] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const { handleLogin } = props;
 
+
+  // calls googleSignIn which provides OAuthorization
   const googleLogin = useGoogleLogin({
     onSuccess: (codeResponse) => {
       if (codeResponse && codeResponse.access_token) {
@@ -27,25 +30,30 @@ function Login(props) {
     onFailure: (err) => console.log(err)
   });
 
+  // once user information has been returned after logging in with Facebook, facebookSignIn is called
   const responseFacebook = (response) => {
     console.log(response);
     facebookSignIn(response);
   }
 
+  // handles username change
   const handleUsernameChange = (event) => {
     setUsername(event.target.value);
   };
 
+  // handles password change
   const handlePasswordChange = (event) => {
     setPassword(event.target.value);
   };
 
 
+  // handles logging in process that doesn't use external socials
   const handleSubmit = useCallback (async (event) => {
     event.preventDefault();
     
     try {
-        console.log('here 42')
+      // sends a post to the server for the user's information + provies authoritization
+      // also handles session management
       const response = await fetch(`http://${config.server_host}:${config.server_port}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -61,11 +69,13 @@ function Login(props) {
   }, [username, password, handleLogin]);
 
 
+  // used to generate a new username for users that log in with facebook/google
   const generateRandomNumber = () => {
     // generates a random number between 1000 and 9999
     return Math.floor(Math.random() * 9000) + 1000;
   };
   
+  // generates username for users that use facebook or google
   const generateUsername = (name) => {
     // takes the name provided by Google and adds a random number at the end
     const randomNumber = generateRandomNumber();
@@ -73,6 +83,7 @@ function Login(props) {
     return username;
   };
   
+  // handles loggin in process for Google users
   const googleSignIn = useCallback(async (access_token) => {
     try {
       const res = await axios.get('https://www.googleapis.com/oauth2/v1/userinfo', {
@@ -80,32 +91,43 @@ function Login(props) {
           Authorization: `Bearer ${access_token}`,
           Accept: 'application/json'
         },
+
+        // requires access token provided by the response from the initial logging in process
         params: {
           access_token: access_token
         }
       });
+
+      // new name generated
       const newName = generateUsername(res.data.name);
+
+      // sends a response back to the backend route to create a jwt + provide authoritization
       const response = await fetch(`http://${config.server_host}:${config.server_port}/socialLogin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newName, password: res.data.id, email: res.data.email })
       });
+
+      // sends response to app.js
       await handleLogin(response);
     } catch (err) {
       console.log(err);
     }
   }, [googleUser, generateUsername, handleLogin]);
 
+  // handles facebook sign in 
   const facebookSignIn = useCallback(async (fbResponse) => {
-    console.log(fbResponse);
     const newName = generateUsername(fbResponse.name);
-    console.log(newName);
+
+    // sends post to backend route 
     try {
       const response = await fetch(`http://${config.server_host}:${config.server_port}/socialLogin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newName, password: fbResponse.id, email: fbResponse.email })
       });
+
+      // awaits that the response from the backend to provide authoritization through app.js
       await handleLogin(response);
     } catch(err) {
       console.log(err)

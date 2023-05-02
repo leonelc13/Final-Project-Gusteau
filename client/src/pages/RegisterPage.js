@@ -11,6 +11,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 const config = require('../config.json');
 
 function Register(props) {
+
+  // creating all the variables that will store user information 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
@@ -18,18 +20,24 @@ function Register(props) {
   const [errorMessage, setErrorMessage] = useState('');
   const { handleLogin } = props;
 
+  // hanldes username change
   const handleUsernameChange = (event) => {
     setUsername(event.target.value);
   };
 
+
+  // handles password change
   const handlePasswordChange = (event) => {
     setPassword(event.target.value);
   };
 
+
+  // handles email change
   const handleEmailChange = (event) => {
     setEmail(event.target.value);
   }
 
+  // handles google login process and calls googleSignIn (similar to login page)
   const googleLogin = useGoogleLogin({
     onSuccess: (codeResponse) => {
       if (codeResponse && codeResponse.access_token) {
@@ -40,11 +48,13 @@ function Register(props) {
     onFailure: (err) => console.log(err)
   });
 
+  // same process as login page
   const responseFacebook = (response) => {
     console.log(response);
     facebookSignIn(response);
   }
 
+  // handles the case where the user attempts to register without google or facebook
   const handleSubmit = useCallback (async (event) => {
     event.preventDefault();
     try {
@@ -74,6 +84,8 @@ function Register(props) {
     return username;
   };
   
+
+  // same login page
   const googleSignIn = useCallback(async (access_token) => {
     try {
       const res = await axios.get('https://www.googleapis.com/oauth2/v1/userinfo', {
@@ -97,6 +109,7 @@ function Register(props) {
     }
   }, [googleUser, generateUsername, handleLogin]);
 
+  // same as login page
   const facebookSignIn = useCallback(async (fbResponse) => {
     console.log(fbResponse);
     const newName = generateUsername(fbResponse.name);

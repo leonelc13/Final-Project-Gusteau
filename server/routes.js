@@ -736,6 +736,7 @@ const recipe_reviews = async function (req, res) {
 }
 
 // Route 16: POST /login
+// handles regular login process
 const login = async function (req, res) {
   const { name, password } = req.body;
   if (!name || name === '') {
@@ -770,6 +771,7 @@ const login = async function (req, res) {
 }
 
 // Route 17: POST /register
+// Handles regular register process
 const register = async function (req, res) {
   console.log(req.body);
   const { name, email, password } = req.body;
@@ -812,6 +814,8 @@ const register = async function (req, res) {
   });
 }
 
+// Route 18: POST /socialLogin
+// handles logging in and registering with google/facebook
 const socialLogin = async function (req, res) {
   const { name, password, email } = req.body;
   // Check if the user already exists in the database
@@ -855,7 +859,7 @@ const socialLogin = async function (req, res) {
   });
 }
 
-// Route 16: GET /ingredients
+// Route 19: GET /ingredients
 // Get all ingredient names and ids, used for autocomplete for ingredient search
 const ingredients = async function (req, res) {
   let queryString = `
