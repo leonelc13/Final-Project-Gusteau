@@ -44,7 +44,7 @@ export default function HomePage() {
 
   // user-inputted ingredients for ingredient search
   const [foodTags, setFoodTags] = useState([]);
-  // autocomplete thing
+  // autocomplete control
   const [clear, setClear] = useState(false);
   const [ingrPage, setIngrPage] = useState(1);
   // const [pageSize, setPageSize] = useState(defaultPageSize ?? 10);
@@ -54,6 +54,7 @@ export default function HomePage() {
 
   const [disableNext, setDisableNext] = useState(true);
 
+  // functions to control 'options' drawer
   const handleDrawerOpen = () => {
     setDrawerOpen(true);
   };
@@ -62,6 +63,7 @@ export default function HomePage() {
     setDrawerOpen(false);
   };
 
+  // submit button after applying filters
   const handleSubmit = (e) => {
     handleDrawerClose();
   }
@@ -123,20 +125,25 @@ export default function HomePage() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // get ingredients for autocomplete
     fetch(`http://${config.server_host}:${config.server_port}/ingredients`)
       .then(res => res.json())
       .then(resJson => { setAllIngredients(resJson) });
 
+    // update matching recipes only if at least one tag remaining
     if (foodTags.length > 0) {
+      // used if match all is not selected
       fetch(`http://${config.server_host}:${config.server_port}/some_ingredients/${foodTags.join('&')}?page=${ingrPage}&max_prep_time=${maxPrepTime}`)
         .then(res => res.json())
         .then(resJson => { setMatchingRecipesOne(resJson) });
 
+      // used if match all is selected
       fetch(`http://${config.server_host}:${config.server_port}/all_ingredients/${foodTags.join('&')}?page=${ingrPage}&max_prep_time=${maxPrepTime}`)
         .then(res => res.json())
         .then(resJson => { setMatchingRecipesAll(resJson) });
     }
 
+    // get recipes for autocomplete
     fetch(`http://${config.server_host}:${config.server_port}/recipes`)
       .then(res => res.json())
       .then(resJson => { setAllRecipes(resJson) });
@@ -192,12 +199,15 @@ export default function HomePage() {
 
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
-      // Add the selected value as a chip
-      // Here you can implement your search logic
+
+      // clear search bar
       setClear(!clear);
+
+      // update food tags and Add the selected value as a chip
       if (text.label && !foodTags.includes(text.label)) {
         setFoodTags([...foodTags, text.label]);
       }
+      // update search bar value
       setText('');
     }
   };
@@ -206,6 +216,7 @@ export default function HomePage() {
     <Container>
       <h1 style={{ fontFamily: "Helvetica Neue", lineHeight: 0, marginBottom: '0.3em', marginTop: '1.6em', fontSize: "5em", fontWeight: "bold", color: "#5d5e5d", textShadow: "1px 1px 2px #ccc" }}>Gusteau</h1>
       <h3 style={{ fontFamily: "Helvetica Neue", fontSize: "2em", marginBottom: '1em', color: "#d57a65", fontStyle: "italic" }}>Search for recipes by name or ingredients</h3>
+      {/* conditionally render based on whether ingredient search is toggled */}
       {!checked ? (
         <Container>
           <Stack spacing={2} sx={{ width: "100%", marginTop: "3%" }}>
@@ -258,7 +269,6 @@ export default function HomePage() {
                 <Container>
                   <Stack sx={{ width: "30%" }}>
                     <Button sx={{}} onClick={handleDrawerOpen}>Options</Button>
-                    {/* Rest of the code */}
                   </Stack>
                 </Container>
               </Grid>
@@ -309,7 +319,6 @@ export default function HomePage() {
               )}
             />
             <Stack direction="row" spacing={2}>
-
               {foodTags.map((tag, idx) => {
                 return (<div key={idx}
                   style={{
@@ -387,6 +396,6 @@ export default function HomePage() {
               : <></>
           }
 
-        </Container >)
-      } </Container ></Box>;
+        </Container>)
+      } </Container></Box>;
 };

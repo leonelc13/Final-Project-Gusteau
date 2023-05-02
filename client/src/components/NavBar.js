@@ -54,24 +54,26 @@ export default function NavBar(props) {
   }
   const [logoutHovered, setLogoutHovered] = useState(false);
   const [randomRecipe, setRandomRecipe] = useState({});
+
+  // Get random recipe for ROTD page
   useEffect(() => {
     fetch(`http://${config.server_host}:${config.server_port}/random`)
-    .then(res => res.json())
-    .then(resJson => { setRandomRecipe(resJson); console.log(resJson); });
+      .then(res => res.json())
+      .then(resJson => { setRandomRecipe(resJson); });
   }, []);
 
   return (
     <AppBar position='static' className='justify-content-center' style={{ backgroundColor: '#F2A89F' }} elevation={0}>
       <Container maxWidth='s'>
         <Toolbar style={{ display: 'flex', justifyContent: 'space-evenly' }} disableGutters>
-          <NavText href='/' text='GUSTEAU' icon={faUtensils}/>
+          <NavText href='/' text='GUSTEAU' icon={faUtensils} />
           <NavText href='/recipe/stats' text='RECIPE STATS' icon={faMagnifyingGlass} />
+          {/* conditionally add href if randomRecipe defined  */}
           <NavText href={randomRecipe && randomRecipe.length > 0 && `/recipe/${randomRecipe[0].id}`} text='ROTD' icon={faFire} />
           <button
             onClick={handleLogout}
-            className={`nav-button logout-button ${
-              logoutHovered ? "hovered" : ""
-            }`}
+            className={`nav-button logout-button ${logoutHovered ? "hovered" : ""
+              }`}
             onMouseOver={() => setLogoutHovered(true)}
             onMouseOut={() => setLogoutHovered(false)}
           >

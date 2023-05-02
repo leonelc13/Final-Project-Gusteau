@@ -14,7 +14,8 @@ const connection = mysql.createConnection({
 });
 connection.connect((err) => err && console.log(err));
 
-// Route 1: GET /all_ingredients/:<ingredients>?page=<>&page_size=<>&max_prep_time=<> -- DONE
+// Route 1: GET /all_ingredients/:<ingredients>?page=<>&page_size=<>&max_prep_time=<>
+// Find recipes that match ALL ingredients in user-specified list, optionally filtered by max prep time and paginated
 const all_ingredients = async function (req, res) {
   const ingredient_list = req.params.ingredients.split('&');
   const max_prep_time = req.query.max_prep_time ? parseInt(req.query.max_prep_time) : 200000;
@@ -41,6 +42,7 @@ const all_ingredients = async function (req, res) {
 
     } else if (ingredient_list.length > 1) {
       query += "WITH ";
+      // find recipes where ingredient_id matches specified ingredient name
       for (let i = 0; i < ingredient_list.length; i++) {
         query += `recipes${i} AS
                     (SELECT Recipe_id 
@@ -52,6 +54,7 @@ const all_ingredients = async function (req, res) {
                   `;
       }
 
+      // find recipes shared across all ingredients
       query += `combined_recipes AS (
                   SELECT recipes0.Recipe_id
                   FROM recipes0 `;
@@ -65,8 +68,10 @@ const all_ingredients = async function (req, res) {
         }
       }
 
+      // push projection down
       query += `ratings AS (SELECT Recipe_id, rating FROM Reviews) `
 
+      // combine and aggregate
       query += `SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews
           FROM combined_recipes c
           JOIN Recipes r1 ON c.Recipe_id = r1.id
@@ -75,7 +80,6 @@ const all_ingredients = async function (req, res) {
           GROUP BY r1.id
           ORDER BY AVG(r2.rating), COUNT(r2.rating) `
     }
-    console.log(query);
     connection.query(query, (err, data) => {
       if (query === '' || err || data.length === 0) {
         console.log(err);
@@ -104,6 +108,7 @@ const all_ingredients = async function (req, res) {
 
     } else if (ingredient_list.length > 1) {
       query += "WITH ";
+      // find recipes where ingredient_id matches specified ingredient name
       for (let i = 0; i < ingredient_list.length; i++) {
         query += `recipes${i} AS
                     (SELECT Recipe_id 
@@ -115,6 +120,7 @@ const all_ingredients = async function (req, res) {
                   `;
       }
 
+      // find recipes shared across all ingredients
       query += `combined_recipes AS (
                   SELECT recipes0.Recipe_id
                   FROM recipes0 `;
@@ -128,15 +134,20 @@ const all_ingredients = async function (req, res) {
         }
       }
 
+      // push projection down
+      query += `ratings AS (SELECT Recipe_id, rating FROM Reviews) `
+
+      // combine, aggregate
       query += `SELECT r1.*, AVG(r2.rating) AS avg_rating, COUNT(r2.rating) AS num_reviews
           FROM combined_recipes c
           JOIN Recipes r1 ON c.Recipe_id = r1.id
-          LEFT JOIN Reviews r2 ON c.Recipe_id = r2.Recipe_id
+          LEFT JOIN ratings r2 ON c.Recipe_id = r2.Recipe_id
           WHERE r1.num_ingredients >= ${ingredient_list.length} AND r1.preparation_time <= ${max_prep_time} 
           GROUP BY r1.id
           ORDER BY AVG(r2.rating), COUNT(r2.rating)
           LIMIT ${pageSize} `
     }
+    // page offset
     if (page > 1) {
       query += `OFFSET ${(page - 1) * pageSize}`;
     }
@@ -153,7 +164,7 @@ const all_ingredients = async function (req, res) {
 }
 
 
-// Route 2: GET /contributor/:contributor_id -- DONE
+// Route 2: GET /contributor/:contributor_id
 const contributor = async function (req, res) {
   let cid = req.params.contributor_id;
   const page = req.query.page;
@@ -197,7 +208,8 @@ const contributor = async function (req, res) {
   }
 }
 
-// Route 3: GET /prep_time?low_prep_time=&high_prep_time=
+// Route 3: GET /prep_time?low_prep_time=&high_prep_time
+// Filter recipes with prep_time in between low_prep_time and high_prep_time
 const prep_time = async function (req, res) {
   const page = req.query.page;
   const pageSize = req.query.page_size ?? 10;
@@ -366,7 +378,8 @@ const similar_recipes = async function (req, res) {
 }
 
 
-// Route 7: GET /some_ingredients/:<ingredients>?max_prep_time=<> -- DONE
+// Route 7: GET /some_ingredients/:<ingredients>?ax_prep_time=<>
+// Find recipes that match at least one ingredients in user-specified list, optionally filtered by max prep time and paginated
 const some_ingredients = async function (req, res) {
   console.log(req.url);
   const ingredient_list = req.params.ingredients.split('&');
@@ -378,6 +391,7 @@ const some_ingredients = async function (req, res) {
   if (!page) {
     if (ingredient_list.length >= 1) {
       query += "WITH ";
+      // get recipes with ingredient_id that matches user-specified ingredient name
       for (let i = 0; i < ingredient_list.length; i++) {
         query += `recipes${i} AS
                     (SELECT Recipe_id 
@@ -389,6 +403,7 @@ const some_ingredients = async function (req, res) {
                   `;
       }
 
+      // combine all with union
       query += `all_recipe_ids AS (`;
       for (let i = 0; i < ingredient_list.length; i++) {
         query += `SELECT Recipe_id FROM recipes${i} `;
@@ -422,6 +437,7 @@ const some_ingredients = async function (req, res) {
     });
   } else {
     if (ingredient_list.length >= 1) {
+      // get recipes with ingredient_id that matches user-specified ingredient name
       query += "WITH ";
       for (let i = 0; i < ingredient_list.length; i++) {
         query += `recipes${i} AS
@@ -434,6 +450,7 @@ const some_ingredients = async function (req, res) {
                   `;
       }
 
+      // combine all
       query += `all_recipe_ids AS (`;
       for (let i = 0; i < ingredient_list.length; i++) {
         query += `SELECT Recipe_id FROM recipes${i} `;
@@ -473,7 +490,7 @@ const some_ingredients = async function (req, res) {
   }
 };
 
-// Route 8: GET /worst_recipes -- DONE
+// Route 8: GET /worst_recipes
 const worst_recipes = async function (req, res) {
   const page = req.query.page;
   const pageSize = req.query.page_size ?? 10;
@@ -575,7 +592,7 @@ const top_recipes_contributor = async function (req, res) {
   }
 }
 
-// Route 10: GET /top_recipes -- DONE
+// Route 10: GET /top_recipes
 const top_recipes = async function (req, res) {
   const page = req.query.page;
   const pageSize = req.query.page_size ?? 10;
@@ -619,7 +636,7 @@ const top_recipes = async function (req, res) {
   }
 }
 
-// Route 11: GET /random -- DONE
+// Route 11: GET /random
 const random = async function (req, res) {
   connection.query(`
   SELECT R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, AVG(Rv.rating) AS avg_rating
@@ -638,7 +655,8 @@ const random = async function (req, res) {
   });
 }
 
-// Route 12: GET /recipe/:recipe_id -- DONE
+// Route 12: GET /recipe/:recipe_id
+// Get recipe by id, used for recipe info page
 const recipe = async function (req, res) {
   let rid = req.params.recipe_id;
   let queryString = `
@@ -656,7 +674,7 @@ const recipe = async function (req, res) {
   });
 }
 
-//Route 13: GET /price/:recipe_id -- DONE
+//Route 13: GET /price/:recipe_id
 const rec_price = async function (req, res) {
   let rid = req.params.recipe_id;
   let queryString = `
@@ -679,7 +697,8 @@ const rec_price = async function (req, res) {
   });
 }
 
-// Route 14: GET /recipes -- DONE
+// Route 14: GET /recipes
+// Get all recipe names and ids, used for recipe name search autocomplete
 const recipes = async function (req, res) {
   connection.query(`
   SELECT DISTINCT name as label, id as id
@@ -695,7 +714,8 @@ const recipes = async function (req, res) {
   });
 }
 
-// Route 15: GET /recipe_reviews/:recipe_id -- DONE
+// Route 15: GET /recipe_reviews/:recipe_id
+// Get all reviews for particular recipe
 const recipe_reviews = async function (req, res) {
   let rid = req.params.recipe_id;
   let queryString = `
@@ -833,7 +853,8 @@ const socialLogin = async function (req, res) {
   });
 }
 
-// Route 16: GET /ingredients -- DONE
+// Route 16: GET /ingredients
+// Get all ingredient names and ids, used for autocomplete for ingredient search
 const ingredients = async function (req, res) {
   let queryString = `
     SELECT Ingredient_name as label, Ingredient_id as id
