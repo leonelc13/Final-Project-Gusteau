@@ -24,7 +24,7 @@ const all_ingredients = async function (req, res) {
   const pageSize = req.query.page_size ?? 10;
   let query = "";
   if (!page) {
-    if (ingredient_list.length == 1) {
+    if (ingredient_list.length === 1) {
       query += `WITH combined_recipes AS 
         (SELECT Recipe_id 
         FROM Recipe_Ingredient
@@ -80,6 +80,7 @@ const all_ingredients = async function (req, res) {
           GROUP BY r1.id
           ORDER BY AVG(r2.rating), COUNT(r2.rating) `
     }
+    console.log(query);
     connection.query(query, (err, data) => {
       if (query === '' || err || data.length === 0) {
         console.log(err);
@@ -89,7 +90,7 @@ const all_ingredients = async function (req, res) {
       }
     });
   } else {
-    if (ingredient_list.length == 1) {
+    if (ingredient_list.length === 1) {
       query += `WITH combined_recipes AS 
         (SELECT Recipe_id 
         FROM Recipe_Ingredient
@@ -130,7 +131,7 @@ const all_ingredients = async function (req, res) {
                   ON recipes${i - 1}.Recipe_id = recipes${i}.Recipe_id `;
 
         if (i === ingredient_list.length - 1) {
-          query += `) \n`;
+          query += `), \n`;
         }
       }
 
@@ -152,6 +153,7 @@ const all_ingredients = async function (req, res) {
       query += `OFFSET ${(page - 1) * pageSize}`;
     }
 
+    console.log(query);
     connection.query(query, (err, data) => {
       if (query === '' || err || data.length === 0) {
         console.log(err);
@@ -341,7 +343,7 @@ const min_rating = async function (req, res) {
 // Route 5: GET /similar_recipes/:recipe_name 
 const similar_recipes = async function (req, res) {
   const page = req.query.page;
-  const pageSize = req.query.page_size ?? 10; s
+  const pageSize = req.query.page_size ?? 10;
   const recipeName = req.params.recipe_name;
 
   if (!page) {
