@@ -294,6 +294,8 @@ const min_rating = async function (req, res) {
       SELECT R.id, R.preparation_time, R.calories, rv.avg_rating
       FROM Recipes R
       JOIN recipe_ratings rv ON R.id = rv.id
+      LEFT JOIN Recipe_Ingredient ip ON ip. recipe_id = R. id
+      LEFT JOIN Prices p ON p. Ingredient_ id = ip. Ingredient _id
       WHERE rv.avg_rating >= ${rating}
     `, (err, data) => {
       if (err || data.length === 0) {
@@ -316,6 +318,8 @@ const min_rating = async function (req, res) {
       SELECT R.id, R.preparation_time, R.calories, rv.avg_rating
       FROM Recipes R
       JOIN recipe_ratings rv ON R.id = rv.id
+      LEFT JOIN Recipe_Ingredient ip ON ip. recipe_id = R. id
+      LEFT JOIN Prices p ON p. Ingredient_ id = ip. Ingredient _id
       WHERE rv.avg_rating >= ${rating}
       LIMIT ${pageSize}
     `;
@@ -509,7 +513,7 @@ const worst_recipes = async function (req, res) {
     });
   } else {
     let queryString = `
-      SELECT r.name, AVG(rev.rating) as avg_rating, COUNT(rev.recipe_id) as num_reviews, r.id, r.steps, r.calories, rev.description, r.num_ingredients, r.contributor_id, p.price
+      SELECT r.name, AVG(rev.rating) as avg_rating, COUNT(rev.recipe_id) as num_reviews, r.id, r.steps, r.calories, rev.description, r.num_ingredients, r.contributor_id
       FROM Recipes r
       JOIN Reviews rev ON r.id = rev.recipe_id
       GROUP BY r.id
@@ -540,10 +544,8 @@ const top_recipes_contributor = async function (req, res) {
 
   if (!page) {
     connection.query(`
-      SELECT R.id, R.name, R.steps, R.calories, R.preparation_time, R.contributor_id, R.num_ingredients, rev.description, AVG(rev.rating) as average_rating, COUNT(*) AS num_ratings, p.price
+      SELECT R.id, R.name, R.steps, R.calories, R.preparation_time, R.contributor_id, R.num_ingredients, rev.description, AVG(rev.rating) as average_rating, COUNT(*) AS num_ratings
       FROM Reviews rev RIGHT JOIN Recipes R on rev.Recipe_id = R.id
-      JOIN Recipe_Ingredient ip ON ip.recipe_id = R.id 
-      JOIN Prices p ON p.Ingredient_id = ip.Ingredient_id
       WHERE R.id IN (SELECT rec.id FROM Recipes rec WHERE rec.contributor_id = '${cid}')
       GROUP BY R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients
       ORDER BY average_rating DESC, num_ratings DESC
@@ -563,10 +565,8 @@ const top_recipes_contributor = async function (req, res) {
 
   } else {
     let queryString = `
-    SELECT R.id, R.name, R.steps, R.calories, R.preparation_time, R.contributor_id, R.num_ingredients, rev.description, AVG(rev.rating) as average_rating, COUNT(*) AS num_ratings, p.price
+    SELECT R.id, R.name, R.steps, R.calories, R.preparation_time, R.contributor_id, R.num_ingredients, rev.description, AVG(rev.rating) as average_rating, COUNT(*) AS num_ratings
       FROM Reviews rev RIGHT JOIN Recipes R on rev.Recipe_id = R.id
-      JOIN Recipe_Ingredient ip ON ip.recipe_id = R.id 
-      JOIN Prices p ON p.Ingredient_id = ip.Ingredient_id
       WHERE R.id IN (SELECT rec.id FROM Recipes rec WHERE rec.contributor_id = '${cid}')
       GROUP BY R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients
       ORDER BY average_rating DESC, num_ratings DESC
@@ -599,10 +599,8 @@ const top_recipes = async function (req, res) {
 
   if (!page) {
     connection.query(`
-    SELECT R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, AVG(Rv.rating) AS avg_rating, COUNT(*) AS num_ratings, p.price
+    SELECT R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, AVG(Rv.rating) AS avg_rating, COUNT(*) AS num_ratings
     FROM Recipes R JOIN Reviews Rv ON R.id = Rv.Recipe_id
-    JOIN Recipe_Ingredient ip ON ip.recipe_id = R.id 
-    JOIN Prices p ON p.Ingredient_id = ip.Ingredient_id
     GROUP BY R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients
     HAVING COUNT(R.id.recipe_id) > 3
     ORDER BY avg_rating DESC
@@ -616,10 +614,8 @@ const top_recipes = async function (req, res) {
     });
   } else {
     let queryString = `
-    SELECT R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, AVG(Rv.rating) AS avg_rating, COUNT(*) AS num_ratings, p.price
+    SELECT R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients, AVG(Rv.rating) AS avg_rating, COUNT(*) AS num_ratings
     FROM Recipes R JOIN Reviews Rv ON R.id = Rv.Recipe_id
-    JOIN Recipe_Ingredient ip ON ip.recipe_id = R.id 
-    JOIN Prices p ON p.Ingredient_id = ip.Ingredient_id
     GROUP BY R.id, R.name, R.steps, R.calories, R.contributor_id, R.num_ingredients
     HAVING num_ratings >= 10
     ORDER BY avg_rating DESC
@@ -797,6 +793,7 @@ const register = async function (req, res) {
   connection.query(queryString, (err, data) => {
     if (err) {
       res.status(401).json({ error: 'User already exists' });
+      return;
     }
 
     try {

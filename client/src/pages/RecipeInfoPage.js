@@ -137,8 +137,8 @@ export default function RecipeInfoPage() {
                         priceData.map(row =>
                           <TableRow sx={{ fontFamily: 'Helvetica Neue', fontSize: '18px' }} key={row.Ingredient_id}>
                             <TableCell sx={{ fontFamily: 'Helvetica Neue', fontSize: '15px' }} key='Ingredient'>{row.Ingredient_name}</TableCell>
-                            <TableCell key='Country'>{row.country} - {row.currency}</TableCell>
-                            <TableCell key='Price'>{row.price && row.unit ? `${row.price} ${row.currency}/ ${row.unit}` : `0.50 ${row.currency}/g`}</TableCell>
+                            <TableCell key='Country'>{row.country} - USD</TableCell>
+                            <TableCell key='Price'>{row.price && row.unit ? `${row.price} USD / ${row.unit}` : `0.50 USD /g`}</TableCell>
                           </TableRow>)
                       }
                     </TableBody>
@@ -177,8 +177,8 @@ export default function RecipeInfoPage() {
                       priceData.map(row =>
                         <TableRow sx={{ fontFamily: 'Helvetica Neue', fontSize: '18px' }} key={row.Ingredient_id}>
                           <TableCell sx={{ fontFamily: 'Helvetica Neue', fontSize: '15px' }} key='Ingredient'>{row.Ingredient_name}</TableCell>
-                          <TableCell key='Country'>{row.country} - {row.currency}</TableCell>
-                          <TableCell key='Price'>{row.price && row.unit ? `${row.price} ${row.currency}/ ${row.unit}` : `0.50 ${row.currency}/g`}</TableCell>
+                          <TableCell key='Country'>{row.country} - USD</TableCell>
+                          <TableCell key='Price'>{row.price && row.unit ? `${row.price} USD / ${row.unit}` : `0.50 USD /g`}</TableCell>
                         </TableRow>)
                     }
                   </TableBody>
