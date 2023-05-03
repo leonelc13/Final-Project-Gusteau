@@ -125,9 +125,6 @@ export default function HomePage() {
           .then(res => res.json())
           .then(resJson => { setMatchingRecipesOne(resJson) });
       }
-
-
-
     }
 
     // get recipes for autocomplete
@@ -142,7 +139,6 @@ export default function HomePage() {
 
   useEffect(() => {
     if (foodTags.length === 0) {
-      console.log("matchAll", matchAll);
       if (matchAll) {
         setMatchingRecipesAll([]);
       } else {
@@ -155,7 +151,6 @@ export default function HomePage() {
   const checkNext = () => {
     if (!matchAll) {
       if (matchingRecipesOne) {
-        console.log(matchingRecipesOne)
         if (matchingRecipesOne.length === 10) {
           fetch(`http://${config.server_host}:${config.server_port}/some_ingredients/${foodTags.join('&')}?page=${ingrPage + 1}`)
             .then(res => res.json())
@@ -188,7 +183,6 @@ export default function HomePage() {
 
   // what to do when Enter is pressed
   const handleKeyDown = ({ key, id }) => {
-    console.log(text);
     if (text === '') {
       return;
     }
@@ -338,9 +332,6 @@ export default function HomePage() {
                             setMatchingRecipesOne([]);
                           }
                         }
-                        console.log(foodTags);
-                        console.log("matching recipes one", matchingRecipesOne);
-                        console.log("matching recipes all", matchingRecipesAll);
                       }
                     }} />
                 </div>)
