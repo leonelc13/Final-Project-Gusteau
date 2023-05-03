@@ -55,7 +55,7 @@ export default function HomePage() {
   const handleDrawerOpen = () => {
     setDrawerOpen(true);
   };
-  
+
   const handleDrawerClose = () => {
     setDrawerOpen(false);
   };
@@ -64,6 +64,7 @@ export default function HomePage() {
   const handleSubmit = (e) => {
     handleDrawerClose();
   }
+
   const flexFormat = { display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-evenly' };
 
   const handlePrev = () => {
@@ -113,15 +114,20 @@ export default function HomePage() {
 
     // update matching recipes only if at least one tag remaining
     if (foodTags.length > 0) {
-      // used if match all is not selected
-      fetch(`http://${config.server_host}:${config.server_port}/some_ingredients/${foodTags.join('&')}?page=${ingrPage}&max_prep_time=${maxPrepTime}`)
-        .then(res => res.json())
-        .then(resJson => { setMatchingRecipesOne(resJson) });
+      if (matchAll) {
+        // used if match all is selected
+        fetch(`http://${config.server_host}:${config.server_port}/all_ingredients/${foodTags.join('&')}?page=${ingrPage}&max_prep_time=${maxPrepTime}`)
+          .then(res => res.json())
+          .then(resJson => { setMatchingRecipesAll(resJson) });
+      } else {
+        // used if match all is not selected
+        fetch(`http://${config.server_host}:${config.server_port}/some_ingredients/${foodTags.join('&')}?page=${ingrPage}&max_prep_time=${maxPrepTime}`)
+          .then(res => res.json())
+          .then(resJson => { setMatchingRecipesOne(resJson) });
+      }
 
-      // used if match all is selected
-      fetch(`http://${config.server_host}:${config.server_port}/all_ingredients/${foodTags.join('&')}?page=${ingrPage}&max_prep_time=${maxPrepTime}`)
-        .then(res => res.json())
-        .then(resJson => { setMatchingRecipesAll(resJson) });
+
+
     }
 
     // get recipes for autocomplete
@@ -132,7 +138,18 @@ export default function HomePage() {
 
   useEffect(() => {
     checkNext();
-  }, [ingrPage, matchingRecipesOne, matchingRecipesAll])
+  }, [ingrPage, matchingRecipesOne, matchingRecipesAll]);
+
+  useEffect(() => {
+    if (foodTags.length === 0) {
+      console.log("matchAll", matchAll);
+      if (matchAll) {
+        setMatchingRecipesAll([]);
+      } else {
+        setMatchingRecipesOne([]);
+      }
+    }
+  }, [foodTags])
 
   //handles pagination
   const checkNext = () => {
@@ -275,7 +292,7 @@ export default function HomePage() {
             </Drawer>
             <Autocomplete
               key={clear}
-              onChange={(event, value) => { setText(value); console.log("VALUE", value); }}
+              onChange={(event, value) => { setText(value); }}
               // value={value}
               onKeyDown={handleKeyPress}
               filterOptions={filterOptions}
@@ -321,6 +338,9 @@ export default function HomePage() {
                             setMatchingRecipesOne([]);
                           }
                         }
+                        console.log(foodTags);
+                        console.log("matching recipes one", matchingRecipesOne);
+                        console.log("matching recipes all", matchingRecipesAll);
                       }
                     }} />
                 </div>)
@@ -332,7 +352,7 @@ export default function HomePage() {
           <Container>
             <Box mx="auto">
               <ol>
-                {!matchAll && foodTags ? (matchingRecipesOne ? (
+                {foodTags && (!matchAll && foodTags ? (matchingRecipesOne ? (
                   matchingRecipesOne.map((recipe) => (
                     <a href={`/recipe/${recipe.id}`} key={recipe.id} style={{ textDecoration: 'none' }}>
                       <li style={{ backgroundColor: '#f5f5f5', borderRadius: '10px', padding: '10px', margin: '10px', boxShadow: '2px 2px 5px rgba(0,0,0,0.2)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
@@ -362,7 +382,8 @@ export default function HomePage() {
                   ))
                 ) : (
                   <p>Loading...</p>
-                ))}
+                )))}
+
 
               </ol>
             </Box>
